@@ -1,5 +1,5 @@
 import React from "react";
-const fetch = require("sync-fetch");
+// const fetch = require("sync-fetch");
 
 export default class Table extends React.Component {
   constructor(props) {
@@ -12,7 +12,8 @@ export default class Table extends React.Component {
 
   fetchUsers(userIDs) {
     const users = userIDs
-      .map((id) => fetch(process.env.REACT_APP_BACKEND + "users/" + id).json())
+      // .map((id) => fetch(process.env.REACT_APP_BACKEND + "users/" + id).json())
+      .map((id) => this.props.getUser(id))
       .flat()
       .map((user) => {
         return {
@@ -45,7 +46,9 @@ export default class Table extends React.Component {
           fontSize: this.props.fontSize,
           top: this.props.data.y,
           left: this.props.data.x,
-          transform: `rotate(${this.props.data.r}deg)`,
+          transform: this.props.moving
+            ? `rotate(${this.props.newRotation}deg)`
+            : `rotate(${this.props.data.r}deg)`,
           background: this.state.user,
         }}
         onMouseEnter={() => {

@@ -1,6 +1,7 @@
 import React from "react";
 // import ReactDOM from "react-dom";
 import Draggable from "react-draggable";
+
 import User from "./User";
 import AddUserForm from "./AddUserForm";
 
@@ -36,13 +37,26 @@ export default class Tooltip extends React.Component {
       this.props.table?.user.split(";").filter((s) => s.length > 0) || []
     ).length;
 
+    const hideButton = this.props.currentlyMovingTable
+      ? {
+          height: 0,
+          width: 0,
+          overflow: "hidden",
+        }
+      : {};
+
     return (
       <>
-        <Draggable {...isDraggable} defaultClassNameDragging="dragging">
+        <Draggable
+          {...isDraggable}
+          handle=".drag"
+          cancel=".noDragHere"
+          defaultClassNameDragging="dragging"
+        >
           <div
             ref={this.myRef}
             // id="tooltip"
-            className={this.props.popup ? "popup" : ""}
+            className={"drag " + (this.props.popup ? "popup" : "")}
             {...{ id: "tooltip" }}
             style={{
               zIndex:
@@ -91,9 +105,32 @@ export default class Tooltip extends React.Component {
               </button>
             </div>
             <div id="closeButtonContainer">
-              <button onClick={() => this.props.closePopup()}>
+              <button
+                onClick={() => this.props.closePopup()}
+                style={hideButton}
+              >
                 <AiOutlineClose />
               </button>
+            </div>
+            <div
+              key={this.props.table?.r}
+              id="inputs"
+              className={
+                "noDragHere " +
+                (this.props.currentlyMovingTable ? "" : "hidden")
+              }
+            >
+              <h3>Tisch drehen / verschieben</h3>
+              <input
+                type="range"
+                defaultValue={this.props.table?.r}
+                name="posRinput"
+                id="posR"
+                min={0}
+                max={360}
+                onChange={(e) => this.props.spinTable(e.target.value)}
+              />
+              <h4>Schiebe den Tisch mit der Maus</h4>
             </div>
             <div
               id="usersContainer"
@@ -110,18 +147,20 @@ export default class Tooltip extends React.Component {
               ).map((user, i) => {
                 const u = this.props.getUser(user);
                 return (
-                  <User
-                    deletable={true}
-                    deleteUser={(userId) => {
-                      const users = this.props.table.user.split(";");
-                      users.splice(users.indexOf(userId), 1);
-                      this.props.table.user = users.join(";");
-                      this.props.deleteUser(userId, this.props.table?.id);
-                    }}
-                    getTeam={(name) => this.props.getTeam(name)}
-                    key={i}
-                    user={u}
-                  />
+                  <div key={i} className="userContainer">
+                    <User
+                      deletable={true}
+                      deleteUser={(userId) => {
+                        const users = this.props.table.user.split(";");
+                        users.splice(users.indexOf(userId), 1);
+                        this.props.table.user = users.join(";");
+                        this.props.deleteUser(userId, this.props.table?.id);
+                      }}
+                      getTeam={(name) => this.props.getTeam(name)}
+                      key={i}
+                      user={u}
+                    />
+                  </div>
                 );
               }) || <span className="noData">keine Personen</span>}
             </div>

@@ -2,12 +2,16 @@ import React from "react";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import ReactDOM from "react-dom/client";
-import "./styles.scss";
+import ReactTooltip from "react-tooltip";
+import Draggable from "react-draggable";
+
+// components
 import Table from "./components/Table";
 import Tooltip from "./components/Tooltip";
-import Draggable from "react-draggable";
+import LocationDropdown from "./components/LocationDropdown";
+import "./styles.scss";
 // icons
-import { GrFormAdd } from "react-icons/gr";
+import { GrFormAdd, GrMapLocation } from "react-icons/gr";
 const fetchSync = require("sync-fetch");
 
 export const CONFIG = {
@@ -31,6 +35,7 @@ class App extends React.Component {
       },
       popupOpen: false,
       addUserFormOpen: false,
+      locationDrowDownOpen: false,
       addUserTableId: -1,
       movingTable: false,
       movingTableId: -1,
@@ -68,6 +73,13 @@ class App extends React.Component {
     clearInterval(this.interval);
   }
 
+  changeLocation(id) {
+    this.setState({ movingTable: false, popupOpen: false }, () => {
+      localStorage.setItem("raumplan", JSON.stringify({ location: id }));
+      this.setState({ location: id }, this.componentDidMount);
+    });
+  }
+
   fetchLocation() {
     const fetchFun = () => {
       return new Promise(async (resolve, reject) => {
@@ -83,6 +95,30 @@ class App extends React.Component {
             reject();
           });
       });
+    };
+
+    if (CONFIG.toasts) {
+      toast.promise(fetchFun, {
+        pending: "fetching location...",
+        success: "Location fetched!",
+        error: "An error occured while fetching location-data",
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
+    } else {
+      fetchFun();
+    }
+  }
+
+  fetchAllLocations() {
+    const fetchFun = () => {
+      this.locations = fetchSync(
+        process.env.REACT_APP_BACKEND + "locations/"
+      ).json();
     };
 
     if (CONFIG.toasts) {
@@ -153,7 +189,7 @@ class App extends React.Component {
     fetch(process.env.REACT_APP_BACKEND + "teams/" + teamName)
       .then((data) => data.json())
       .then((data) => this.teams.push(data[0]))
-      .catch((err) => console.log(err));
+      .catch((err) => console.error(err));
   };
 
   fetchTeamSync = (teamName) => {
@@ -189,7 +225,7 @@ class App extends React.Component {
     fetch(process.env.REACT_APP_BACKEND + "users/" + userId)
       .then((data) => data.json())
       .then((data) => this.users.push(data[0]))
-      .catch((err) => console.log(err));
+      .catch((err) => console.error(err));
   };
 
   fetchUserSync = (userId) => {
@@ -338,6 +374,7 @@ class App extends React.Component {
                 },
               });
             }}
+            rotation={this.state.movingTableNewPos.r}
           >
             <Table
               key={i}
@@ -351,19 +388,44 @@ class App extends React.Component {
               changeTooltipData={(tableData, userData) => {
                 this.changeTooltipData(tableData, userData);
               }}
+              getUser={(id) => this.getUser(id)}
               getTeam={(team) => this.getTeam(team)}
               popup={() => this.setState({ popupOpen: true })}
               popupOpen={this.state.popupOpen}
               moving={
                 this.state.movingTable && table.id === this.state.movingTableId
               }
+              newRotation={this.state.movingTableNewPos.r}
             />
           </this.MovingTable>
         ))}
-        <div id="addTableContainer">
-          <button onClick={() => this.addTable()}>
-            <GrFormAdd />
-          </button>
+        <div id="floatingButtons">
+          <div id="addTableContainer" data-tip="Tisch hinzufügen">
+            <button onClick={() => this.addTable()}>
+              <GrFormAdd />
+            </button>
+          </div>
+          <div id="changeLocationContainer" data-tip="Location wechseln">
+            <button
+              onClick={() => {
+                if (this.locations === undefined) this.fetchAllLocations();
+                this.setState({
+                  locationDrowDownOpen: !this.state.locationDrowDownOpen,
+                });
+              }}
+            >
+              <GrMapLocation />
+            </button>
+            <LocationDropdown
+              open={this.state.locationDrowDownOpen}
+              close={() => this.setState({ locationDrowDownOpen: false })}
+              locations={this.locations}
+              currentLocation={this.state.location}
+              changeLocation={(id) => {
+                this.changeLocation(id);
+              }}
+            />
+          </div>
         </div>
         <Tooltip
           table={this.state.tooltipData.table}
@@ -399,16 +461,35 @@ class App extends React.Component {
               movingTable: true,
               movingTableId: tableId,
               movingTableOldPos: oldPos,
+              movingTableNewPos: { x: 0, y: 0, r: oldPos.r },
+            })
+          }
+          spinTable={(degree) =>
+            this.setState({
+              movingTableNewPos: {
+                x: this.state.movingTableNewPos.x,
+                y: this.state.movingTableNewPos.y,
+                r: degree,
+              },
             })
           }
           saveMovedTable={async () => {
             await this.saveMovedTable();
-            this.setState({ movingTable: false, movingTableId: -1 });
+            this.setState({
+              movingTable: false,
+              movingTableId: -1,
+              movingTableNewPos: { x: 0, y: 0, r: 0 },
+            });
           }}
           resetMovingTable={() => {
-            this.setState({ movingTable: false, movingTableId: -1 });
+            this.setState({
+              movingTable: false,
+              movingTableId: -1,
+              movingTableNewPos: { x: 0, y: 0, r: 0 },
+            });
           }}
         />
+        <ReactTooltip effect="solid" offset={{ left: 5 }} />
       </div>
     );
   }
