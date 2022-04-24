@@ -1,4 +1,5 @@
 import React from "react";
+import "../styles/user.scss";
 // icons
 import { BsTrashFill } from "react-icons/bs";
 

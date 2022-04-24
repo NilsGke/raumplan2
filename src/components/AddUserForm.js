@@ -3,6 +3,7 @@ import fetch from "sync-fetch";
 import { CONFIG } from "../index";
 import { AiOutlineClose } from "react-icons/ai";
 import User from "./User";
+import "../styles/addUserForm.scss";
 
 export default function AddUserForm(props) {
   const [users, setUsers] = useState([]);
@@ -62,7 +63,7 @@ export default function AddUserForm(props) {
               }}
             />
             <div id="closeButtonContainer">
-              <button onClick={() => this.props.closePopup()}>
+              <button onClick={() => props.closePopup()}>
                 <AiOutlineClose />
               </button>
             </div>

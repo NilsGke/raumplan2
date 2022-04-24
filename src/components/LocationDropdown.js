@@ -1,4 +1,5 @@
 import React from "react";
+import "../styles/locationDropdown.scss";
 
 export default function LocationDropdown(props) {
   return (

@@ -9,7 +9,7 @@ import Draggable from "react-draggable";
 import Table from "./components/Table";
 import Tooltip from "./components/Tooltip";
 import LocationDropdown from "./components/LocationDropdown";
-import "./styles.scss";
+import "./styles/index.scss";
 // icons
 import { GrFormAdd, GrMapLocation } from "react-icons/gr";
 const fetchSync = require("sync-fetch");

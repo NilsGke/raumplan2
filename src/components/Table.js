@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import "../styles/table.scss";
 // const fetch = require("sync-fetch");
 
 export default function Table(props) {

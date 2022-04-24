@@ -5,6 +5,7 @@ import Draggable from "react-draggable";
 import User from "./User";
 import AddUserForm from "./AddUserForm";
 
+import "../styles/tooltip.scss";
 // icons
 import { BsTrashFill } from "react-icons/bs";
 import { FiMove, FiCheck } from "react-icons/fi";
@@ -18,8 +19,6 @@ export default function Tooltip(props) {
   const [addUserFormOpen, openUserForm] = useState(false);
 
   const myRef = React.createRef();
-
-  let tableNumberInput;
 
   const defaultValue = props.table?.tableNumber;
   const isDraggable = !props.popup

@@ -1,0 +1,42 @@
+#locationDropdownContainer {
+  transition: all 0.3s ease-in-out;
+
+  display: flex;
+  justify-content: flex-end;
+  align-items: flex-end;
+  position: absolute;
+  bottom: 0;
+  right: 60px;
+  max-height: 0px;
+  max-width: 0px;
+  padding: 0px;
+  border-radius: 20px;
+  overflow: hidden;
+
+  #locationDropdown {
+    background: #323336;
+    border-radius: 20px;
+    overflow: hidden;
+    z-index: 1000;
+    padding: 20px;
+
+    button.location {
+      background-color: #28292d;
+      color: white;
+      border: 2px solid #28292d;
+      border-radius: 10px;
+      font-size: 20px;
+      white-space: nowrap;
+      margin: 5px;
+      padding: 10px;
+      cursor: pointer;
+      &.current {
+        border: 2px solid white;
+      }
+    }
+  }
+  &.open {
+    max-height: 500px;
+    max-width: 300px;
+  }
+}
