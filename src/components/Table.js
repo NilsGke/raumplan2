@@ -1,73 +1,59 @@
-import React from "react";
+import React, { useState } from "react";
 // const fetch = require("sync-fetch");
 
-export default class Table extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      userData: false,
-      data: this.props.data,
-    };
-  }
+export default function Table(props) {
+  const [userData, setUserData] = useState(false);
 
-  fetchUsers(userIDs) {
+  function fetchUsers(userIDs) {
     const users = userIDs
       // .map((id) => fetch(process.env.REACT_APP_BACKEND + "users/" + id).json())
-      .map((id) => this.props.getUser(id))
+      .map((id) => props.getUser(id))
       .flat()
       .map((user) => {
         return {
           ...user,
           teams: user.Organisationseinheiten.split(", ")
             .map((teamName) =>
-              this.props.getTeam(
-                teamName.replace(": Seibert Media (SM)", "").trim()
-              )
+              props.getTeam(teamName.replace(": Seibert Media (SM)", "").trim())
             )
             .flat(),
         };
       });
 
-    this.setState({ userData: users }, () => {
-      this.props.changeTooltipData(this.props.data, this.state.userData);
-    });
+    setUserData(users);
+    props.changeTooltipData(props.data, userData);
   }
 
-  render() {
-    return (
-      <div
-        className="table"
-        onClick={() => {
-          this.props.popup();
-        }}
-        style={{
-          height: this.props.height + "px",
-          width: this.props.width + "px",
-          fontSize: this.props.fontSize,
-          top: this.props.data.y,
-          left: this.props.data.x,
-          transform: this.props.moving
-            ? `rotate(${this.props.newRotation}deg)`
-            : `rotate(${this.props.data.r}deg)`,
-          background: this.state.user,
-        }}
-        onMouseEnter={() => {
-          if (this.props.popupOpen) return;
-          this.props.tooltip(true);
-          if (!this.state.userData) {
-            this.fetchUsers(
-              this.props.data.user.split(";").filter((s) => s.length > 0)
-            );
-          } else {
-            this.props.changeTooltipData(this.props.data, this.state.userData);
-          }
-        }}
-        onMouseLeave={() => {
-          this.props.tooltip(false);
-        }}
-      >
-        {this.props.data.tableNumber.substr(-3, 3)}
-      </div>
-    );
-  }
+  return (
+    <div
+      className="table"
+      onClick={() => {
+        props.popup();
+      }}
+      style={{
+        height: props.height + "px",
+        width: props.width + "px",
+        fontSize: props.fontSize,
+        top: props.data.y,
+        left: props.data.x,
+        transform: props.moving
+          ? `rotate(${props.newRotation}deg)`
+          : `rotate(${props.data.r}deg)`,
+      }}
+      onMouseEnter={() => {
+        if (props.popupOpen) return;
+        props.tooltip(true);
+        if (!userData) {
+          fetchUsers(props.data.user.split(";").filter((s) => s.length > 0));
+        } else {
+          props.changeTooltipData(props.data, userData);
+        }
+      }}
+      onMouseLeave={() => {
+        props.tooltip(false);
+      }}
+    >
+      {props.data.tableNumber.substr(-3, 3)}
+    </div>
+  );
 }
