@@ -353,144 +353,147 @@ class App extends React.Component {
 
   render() {
     return (
-      <div
-        id="app"
-        style={{
-          backgroundImage: `url(${this.images[this.state.locationData?.img]})`,
-        }}
-      >
-        {this.state.tables?.map((table, i) => (
-          <this.MovingTable
-            key={i}
-            movable={
-              this.state.movingTable && table.id === this.state.movingTableId
-            }
-            updateNewPos={(elem) => {
-              this.setState({
-                movingTableNewPos: {
-                  x: elem.x,
-                  y: elem.y,
-                  r: this.state.movingTableNewPos.r, //this should stay the same bc its not the dragging that defines that
-                },
-              });
-            }}
-            rotation={this.state.movingTableNewPos.r}
-          >
-            <Table
+      <>
+        <img
+          src={this.images[this.state.locationData?.img]}
+          id="map"
+          alt={`karte von ${this.images[this.state.locationData?.img]}`}
+        />
+        <div id="app">
+          {this.state.tables?.map((table, i) => (
+            <this.MovingTable
               key={i}
-              height={this.state.locationData.tableHeight}
-              width={this.state.locationData.tableWidth}
-              fontSize={this.state.locationData.fontSize}
-              data={table}
-              tooltip={(visible) => {
-                this.setState({ tooltipVisible: visible });
-              }}
-              changeTooltipData={(tableData, userData) => {
-                this.changeTooltipData(tableData, userData);
-              }}
-              getUser={(id) => this.getUser(id)}
-              getTeam={(team) => this.getTeam(team)}
-              popup={() => this.setState({ popupOpen: true })}
-              popupOpen={this.state.popupOpen}
-              moving={
+              movable={
                 this.state.movingTable && table.id === this.state.movingTableId
               }
-              newRotation={this.state.movingTableNewPos.r}
-            />
-          </this.MovingTable>
-        ))}
-        <div id="floatingButtons">
-          <div id="addTableContainer" data-tip="Tisch hinzufügen">
-            <button onClick={() => this.addTable()}>
-              <GrFormAdd />
-            </button>
-          </div>
-          <div id="changeLocationContainer" data-tip="Location wechseln">
-            <button
-              onClick={() => {
-                if (this.locations === undefined) this.fetchAllLocations();
+              updateNewPos={(elem) => {
                 this.setState({
-                  locationDrowDownOpen: !this.state.locationDrowDownOpen,
+                  movingTableNewPos: {
+                    x: elem.x,
+                    y: elem.y,
+                    r: this.state.movingTableNewPos.r, //this should stay the same bc its not the dragging that defines that
+                  },
                 });
               }}
+              rotation={this.state.movingTableNewPos.r}
             >
-              <GrMapLocation />
-            </button>
-            <LocationDropdown
-              open={this.state.locationDrowDownOpen}
-              close={() => this.setState({ locationDrowDownOpen: false })}
-              locations={this.locations}
-              currentLocation={this.state.location}
-              changeLocation={(id) => {
-                this.changeLocation(id);
-              }}
-            />
+              <Table
+                key={i}
+                height={this.state.locationData.tableHeight}
+                width={this.state.locationData.tableWidth}
+                fontSize={this.state.locationData.fontSize}
+                data={table}
+                tooltip={(visible) => {
+                  this.setState({ tooltipVisible: visible });
+                }}
+                changeTooltipData={(tableData, userData) => {
+                  this.changeTooltipData(tableData, userData);
+                }}
+                getUser={(id) => this.getUser(id)}
+                getTeam={(team) => this.getTeam(team)}
+                popup={() => this.setState({ popupOpen: true })}
+                popupOpen={this.state.popupOpen}
+                moving={
+                  this.state.movingTable &&
+                  table.id === this.state.movingTableId
+                }
+                newRotation={this.state.movingTableNewPos.r}
+              />
+            </this.MovingTable>
+          ))}
+          <div id="floatingButtons">
+            <div id="addTableContainer" data-tip="Tisch hinzufügen">
+              <button onClick={() => this.addTable()}>
+                <GrFormAdd />
+              </button>
+            </div>
+            <div id="changeLocationContainer" data-tip="Location wechseln">
+              <button
+                onClick={() => {
+                  if (this.locations === undefined) this.fetchAllLocations();
+                  this.setState({
+                    locationDrowDownOpen: !this.state.locationDrowDownOpen,
+                  });
+                }}
+              >
+                <GrMapLocation />
+              </button>
+              <LocationDropdown
+                open={this.state.locationDrowDownOpen}
+                close={() => this.setState({ locationDrowDownOpen: false })}
+                locations={this.locations}
+                currentLocation={this.state.location}
+                changeLocation={(id) => {
+                  this.changeLocation(id);
+                }}
+              />
+            </div>
           </div>
+          <Tooltip
+            table={this.state.tooltipData.table}
+            visible={this.state.tooltipVisible}
+            popup={this.state.popupOpen}
+            openPopup={() => this.setState({ popupOpen: true })}
+            closePopup={() => this.setState({ popupOpen: false })}
+            changeTableNumber={(id, num) => this.changeTableNumber(id, num)}
+            getTeam={(name) => this.getTeam(name)}
+            getUser={(id) => {
+              return this.getUser(id);
+            }}
+            removeTable={(id) => {
+              if (!window.confirm("Tisch wirklich löschen?")) return;
+              this.removeTable(id);
+              this.setState({ popupOpen: false });
+            }}
+            // edit users
+            deleteUser={(userId, tableId) => {
+              this.removeUserFromTable(userId, tableId);
+            }}
+            addUserFormOpen={(id) => {
+              this.addUserFormOpen(id);
+            }}
+            addUserToTable={(tableId, userId) =>
+              this.addUserToTable(tableId, userId)
+            }
+            updateTables={() => this.fetchTables()}
+            // move tables
+            currentlyMovingTable={this.state.movingTable}
+            moveTable={(tableId, oldPos) =>
+              this.setState({
+                movingTable: true,
+                movingTableId: tableId,
+                movingTableOldPos: oldPos,
+                movingTableNewPos: { x: 0, y: 0, r: oldPos.r },
+              })
+            }
+            spinTable={(degree) =>
+              this.setState({
+                movingTableNewPos: {
+                  x: this.state.movingTableNewPos.x,
+                  y: this.state.movingTableNewPos.y,
+                  r: degree,
+                },
+              })
+            }
+            saveMovedTable={async () => {
+              await this.saveMovedTable();
+              this.setState({
+                movingTable: false,
+                movingTableId: -1,
+                movingTableNewPos: { x: 0, y: 0, r: 0 },
+              });
+            }}
+            resetMovingTable={() => {
+              this.setState({
+                movingTable: false,
+                movingTableId: -1,
+                movingTableNewPos: { x: 0, y: 0, r: 0 },
+              });
+            }}
+          />
+          <ReactTooltip effect="solid" offset={{ left: 5 }} />
         </div>
-        <Tooltip
-          table={this.state.tooltipData.table}
-          visible={this.state.tooltipVisible}
-          popup={this.state.popupOpen}
-          openPopup={() => this.setState({ popupOpen: true })}
-          closePopup={() => this.setState({ popupOpen: false })}
-          changeTableNumber={(id, num) => this.changeTableNumber(id, num)}
-          getTeam={(name) => this.getTeam(name)}
-          getUser={(id) => {
-            return this.getUser(id);
-          }}
-          removeTable={(id) => {
-            if (!window.confirm("Tisch wirklich löschen?")) return;
-            this.removeTable(id);
-            this.setState({ popupOpen: false });
-          }}
-          // edit users
-          deleteUser={(userId, tableId) => {
-            this.removeUserFromTable(userId, tableId);
-          }}
-          addUserFormOpen={(id) => {
-            this.addUserFormOpen(id);
-          }}
-          addUserToTable={(tableId, userId) =>
-            this.addUserToTable(tableId, userId)
-          }
-          updateTables={() => this.fetchTables()}
-          // move tables
-          currentlyMovingTable={this.state.movingTable}
-          moveTable={(tableId, oldPos) =>
-            this.setState({
-              movingTable: true,
-              movingTableId: tableId,
-              movingTableOldPos: oldPos,
-              movingTableNewPos: { x: 0, y: 0, r: oldPos.r },
-            })
-          }
-          spinTable={(degree) =>
-            this.setState({
-              movingTableNewPos: {
-                x: this.state.movingTableNewPos.x,
-                y: this.state.movingTableNewPos.y,
-                r: degree,
-              },
-            })
-          }
-          saveMovedTable={async () => {
-            await this.saveMovedTable();
-            this.setState({
-              movingTable: false,
-              movingTableId: -1,
-              movingTableNewPos: { x: 0, y: 0, r: 0 },
-            });
-          }}
-          resetMovingTable={() => {
-            this.setState({
-              movingTable: false,
-              movingTableId: -1,
-              movingTableNewPos: { x: 0, y: 0, r: 0 },
-            });
-          }}
-        />
-        <ReactTooltip effect="solid" offset={{ left: 5 }} />
-      </div>
+      </>
     );
   }
 }
