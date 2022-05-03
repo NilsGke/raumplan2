@@ -27,7 +27,7 @@ export default function Table(props) {
 
   return (
     <div
-      className="table"
+      className={"table " + (props.active ? " active" : "")}
       onClick={(e) => {
         if (e.nativeEvent.pointerType === "touch") return; // dont open popup if touched on mobile (thats what the edit button is for)
         props.popup();

@@ -1,6 +1,4 @@
-import React from "react";
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import React, { useEffect, useState } from "react";
 import ReactDOM from "react-dom/client";
 import ReactTooltip from "react-tooltip";
 import Draggable from "react-draggable";
@@ -8,315 +6,199 @@ import Draggable from "react-draggable";
 // components
 import Table from "./components/Table";
 import Tooltip from "./components/Tooltip";
+import Calender from "./components/Calender";
 import LocationDropdown from "./components/LocationDropdown";
+import Teamlocation from "./components/Teamlocation";
+import Room from "./components/Room";
 import "./styles/index.scss";
 // icons
 import { GrFormAdd, GrMapLocation } from "react-icons/gr";
 const fetchSync = require("sync-fetch");
 
 export const CONFIG = {
-  reload: 0,
-  toasts: false,
+  reload: 5, // refresh time in seconds
   minSearchLengh: 0,
 };
 
-class App extends React.Component {
-  constructor(props) {
-    super(props);
+function importImages(r) {
+  let images = {};
+  r.keys().map((item, index) => {
+    return (images[item.replace("./", "")] = r(item));
+  });
+  return images;
+}
 
-    const stored = JSON.parse(localStorage.getItem("raumplan"));
-    if (stored === undefined)
-      localStorage.setItem("raumplan", JSON.stringify({ location: 3 }));
-    this.state = {
-      location: stored?.location || 3,
-      tooltipData: {
-        table: null,
-        users: null,
-      },
-      popupOpen: false,
-      addUserFormOpen: false,
-      locationDrowDownOpen: false,
-      addUserTableId: -1,
-      movingTable: false,
-      movingTableId: -1,
-      movingTableNewPos: { x: 0, y: 0, r: 0 },
-      movingTableOldPos: { x: 0, y: 0, r: 0 },
-    };
+/**variable to hold locations*/
+let locations = [];
 
-    this.images = this.importImages(
-      require.context("./img", false, /\.(png|jpe?g|svg)$/)
-    );
+/**variable to hold all users*/
+const users = [];
 
-    this.teams = [];
-    this.users = [];
-  }
+/**variable to hold all teams*/
+const teams = [];
 
-  importImages(r) {
-    let images = {};
-    r.keys().map((item, index) => {
-      return (images[item.replace("./", "")] = r(item));
-    });
-    return images;
-  }
+let interval;
 
-  componentDidMount() {
-    this.fetchLocation();
-    this.fetchTables();
-    if (CONFIG.reload > 0) {
-      this.interval = setInterval(() => {
-        this.fetchTables();
-      }, CONFIG.reload * 1000);
-    }
-  }
+function App() {
+  const stored = JSON.parse(localStorage.getItem("raumplan"));
+  if (stored === undefined)
+    localStorage.setItem("raumplan", JSON.stringify({ location: 3 }));
 
-  componentWillUnmount() {
-    clearInterval(this.interval);
-  }
+  const [locationId, setLocationId] = useState(stored?.location || 3);
+  const [locationData, setLocationData] = useState(null);
 
-  changeLocation(id) {
-    this.setState({ movingTable: false, popupOpen: false }, () => {
-      localStorage.setItem("raumplan", JSON.stringify({ location: id }));
-      this.setState({ location: id }, this.componentDidMount);
-    });
-  }
+  const [tables, setTables] = useState(null);
+  const [reload, setReload] = useState(false);
 
-  fetchLocation() {
-    const fetchFun = () => {
-      return new Promise(async (resolve, reject) => {
-        await fetch(
-          process.env.REACT_APP_BACKEND + "locations/" + this.state.location
-        )
-          .then((res) => res.json())
-          .then((data) => {
-            this.setState({ locationData: data[0] }, resolve);
-          })
-          .catch((err) => {
-            console.error(err);
-            reject();
-          });
-      });
-    };
+  const [teamlocations, setTeamlocations] = useState(null);
+  const [rooms, setRooms] = useState(null);
 
-    if (CONFIG.toasts) {
-      toast.promise(fetchFun, {
-        pending: "fetching location...",
-        success: "Location fetched!",
-        error: "An error occured while fetching location-data",
-        position: "top-right",
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-      });
-    } else {
-      fetchFun();
-    }
-  }
+  const [calender, setCalender] = useState({ visible: false, data: null });
 
-  fetchAllLocations() {
-    const fetchFun = () => {
-      this.locations = fetchSync(
-        process.env.REACT_APP_BACKEND + "locations/"
-      ).json();
-    };
+  const [tooltipData, setTooltipData] = useState({ table: null, users: null });
+  const [tooltipVisible, setTooltipVisible] = useState(false);
+  const [popupOpen, setPopupOpen] = useState(false);
+  const [locationDropDownOpen, SetlocationDropDownOpen] = useState(false);
+  const [movingTable, setMovingTable] = useState(false);
+  const [movingTableId, setMovingTableId] = useState(-1);
+  const [movingTableNewPos, setMovingTableNewPos] = useState({
+    x: 0,
+    y: 0,
+    r: 0,
+  });
+  const [movingTableOldPos, setMovingTableOldPos] = useState({
+    x: 0,
+    y: 0,
+    r: 0,
+  });
 
-    if (CONFIG.toasts) {
-      toast.promise(fetchFun, {
-        pending: "fetching location...",
-        success: "Location fetched!",
-        error: "An error occured while fetching location-data",
-        position: "top-right",
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-      });
-    } else {
-      fetchFun();
-    }
-  }
+  /**holds images of the building*/
+  const images = importImages(
+    require.context("./img", false, /\.(png|jpe?g|svg)$/)
+  );
 
-  fetchTables() {
-    const fetchFun = () => {
-      return new Promise(async (resolve, reject) => {
-        await fetch(
-          process.env.REACT_APP_BACKEND + "tables/" + this.state.location
-        )
-          .then((res) => res.json())
-          .then((data) => {
-            this.setState({ tables: data }, resolve);
-          })
-          .catch((err) => {
-            console.error(err);
-            reject();
-          });
-      });
-    };
-
-    if (CONFIG.toasts) {
-      toast.promise(fetchFun, {
-        pending: "fetching tables...",
-        success: "Tables fetched!",
-        error:
-          "An error occured while fetching tables OR there might be no tables in this location",
-        position: "top-right",
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-      });
-    } else {
-      return fetchFun();
-    }
-  }
-
-  tooltip = (visible) => this.setState({ tooltipVisibility: visible });
-
-  changeTooltipData = (table, users) =>
-    this.setState({ tooltipData: { table: table, users: users } });
-
-  // team functions
-  getTeam = (teamName) => {
-    const team = this.teams.find((t) => t.name === teamName);
-    if (team === undefined) this.fetchTeamSync(teamName);
-    return this.teams.find((t) => t.name === teamName);
-  };
-
-  fetchTeam = (teamName) => {
-    fetch(process.env.REACT_APP_BACKEND + "teams/" + teamName)
-      .then((data) => data.json())
-      .then((data) => this.teams.push(data[0]))
-      .catch((err) => console.error(err));
-  };
-
-  fetchTeamSync = (teamName) => {
-    let team;
-    try {
-      team = fetchSync(
-        process.env.REACT_APP_BACKEND + "teams/" + teamName
-      ).json()[0];
-    } catch (error) {
-      console.error(
-        'Could not find team: "' +
-          teamName +
-          '" \nConsider adding it to the database!'
+  useEffect(() => {
+    if (CONFIG.reload > 0 && interval === null) {
+      interval = setInterval(
+        () => setLocationId(locationId),
+        CONFIG.reload * 1000
       );
-      team = { id: -1, name: teamName, color: "#1c1e26" };
-    } finally {
-      this.teams.push(team);
     }
-    // fetchSync(process.env.REACT_APP_BACKEND + "teams/" + team)
-    //   .then((data) => data.json())
-    //   .then((data) => this.teams.push(data[0]));
-    // return new Promise((resolve, reject) => {});
-  };
 
-  // userFunctions
-  getUser = (userId) => {
-    const user = this.users.find((u) => u.id === userId);
-    if (user === undefined) this.fetchUserSync(userId);
-    return this.users.find((u) => u.id === userId);
-  };
-
-  fetchUser = (userId) => {
-    fetch(process.env.REACT_APP_BACKEND + "users/" + userId)
-      .then((data) => data.json())
-      .then((data) => this.users.push(data[0]))
-      .catch((err) => console.error(err));
-  };
-
-  fetchUserSync = (userId) => {
-    const user = fetchSync(
-      process.env.REACT_APP_BACKEND + "users/" + userId
-    ).json()[0];
-    this.users.push(user);
-  };
-
-  popup(data) {
-    this.setState({
-      popupOpen: true,
-    });
-  }
-
-  addTable() {
-    let newTable = {
-      tableNumber: "",
-      position: {
-        x: Math.floor(Math.random() * 200) + 300,
-        y: Math.floor(Math.random() * 100),
-        r: 0,
-      },
-      user: [],
-      location: this.state.location,
+    return () => {
+      clearInterval(interval);
     };
-    fetch(process.env.REACT_APP_BACKEND + "addTable", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(newTable),
-    }).then(() => {
-      this.fetchTables();
-    });
+  });
+
+  // location change
+  useEffect(() => {
+    const find = locations.find((l) => l.id === locationId);
+    if (find === undefined) {
+      fetch(process.env.REACT_APP_BACKEND + "locations/" + locationId)
+        .then((res) => res.json())
+        .then((data) => {
+          locations.push(data[0]);
+          setLocationData(data[0]);
+        })
+        .catch((err) => console.error(err));
+    } else {
+      setLocationData(find);
+    }
+  }, [locationId]);
+
+  // fetch rooms
+  useEffect(() => {
+    if (locationData != null)
+      fetch(process.env.REACT_APP_BACKEND + "rooms/" + locationId)
+        .then((res) => res.json())
+        .then((data) => setRooms(data))
+        .catch((err) => console.error(err));
+  }, [locationData, reload, locationId]);
+
+  // fetch rooms
+  useEffect(() => {
+    if (locationData != null)
+      fetch(process.env.REACT_APP_BACKEND + "teamlocations/" + locationId)
+        .then((res) => res.json())
+        .then((data) => setTeamlocations(data))
+        .catch((err) => console.error(err));
+  }, [locationData, reload, locationId]);
+
+  // fetching tables
+  useEffect(() => {
+    if (locationData != null)
+      fetch(process.env.REACT_APP_BACKEND + "tables/" + locationId)
+        .then((res) => res.json())
+        .then((data) => setTables(data))
+        .catch((err) => console.error(err));
+  }, [locationData, reload, locationId]);
+
+  /** function that fetches the location data (such as table size and picture path)
+   * @param {number} location
+   */
+  function fetchLocation(location) {
+    return new Promise((resolve, reject) =>
+      fetch(process.env.REACT_APP_BACKEND + "locations/" + location)
+        .then((res) => res.json())
+        .then((data) => {
+          locations.push(data[0]);
+          setLocationData(data[0]);
+        })
+        .then(resolve)
+        .catch((err) => {
+          console.error(err);
+          reject();
+        })
+    );
   }
 
-  changeTableNumber(tableId, newTableNumber) {
-    let data = {
-      id: tableId,
-      tableNumber: newTableNumber,
-    };
-    fetch(process.env.REACT_APP_BACKEND + "changeTableNumber", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
-    }).then(() => {
-      this.fetchTables();
-    });
+  /** function that given a userid returns the user object and if user is not avalible yet, fetches it
+   * @param {number} userId user id
+   * @returns user object
+   */
+  function getUser(userId) {
+    const user = users.find((u) => u.id === userId);
+    // if the user is not found, it fetches the user
+    if (user === undefined) {
+      const user = fetchSync(
+        process.env.REACT_APP_BACKEND + "users/" + userId
+      ).json()[0];
+      users.push(user);
+    }
+    return users.find((u) => u.id === userId);
   }
 
-  removeTable(id) {
-    fetch(process.env.REACT_APP_BACKEND + "removeTable", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        id: id,
-      }),
-    }).then(() => {
-      this.fetchTables();
-    });
+  /** function that given a team name returns the team object and if team is not avalible yet, fethes it
+   * @param {string} teamName team name
+   * @returns team object
+   */
+  function getTeam(teamName) {
+    const team = teams.find((t) => t.name === teamName);
+    // if team is not found it fetches it
+    if (team === undefined) {
+      let team;
+      try {
+        team = fetchSync(
+          process.env.REACT_APP_BACKEND + "teams/" + teamName
+        ).json()[0];
+      } catch (error) {
+        // if team does not exist in db then error and add fake team data
+        console.error(
+          `Could not find team: ${teamName}\nConsider adding it to the database!`
+        );
+        team = { id: -1, name: teamName, color: "#1c1e26" };
+      } finally {
+        teams.push(team);
+      }
+    }
+    return teams.find((t) => t.name === teamName);
   }
 
-  addUserFormOpen = (id) =>
-    this.setState({ addUserFormOpen: true, addUserTableId: id });
-
-  async addUserToTable(tableId, userId) {
-    fetch(process.env.REACT_APP_BACKEND + "addUserToTable", {
-      method: "POST",
-      headers: {
-        "content-type": "application/json",
-      },
-      body: JSON.stringify({
-        userId: userId,
-        tableId: tableId,
-      }),
-    }).then(() => this.fetchTables());
-  }
-
-  async removeUserFromTable(userId, tableId) {
-    fetch(process.env.REACT_APP_BACKEND + "removeUserFromTable", {
-      method: "POST",
-      headers: {
-        "content-type": "application/json",
-      },
-      body: JSON.stringify({
-        userId,
-        tableId,
-      }),
-    }).then(() => this.fetchTables());
-  }
-
-  MovingTable(props) {
+  /** Table wrapper component to make the table movable
+   * @param {*} props table properties
+   * @returns table element draggable or not
+   */
+  function MovingTable(props) {
     if (props.movable)
       return (
         <Draggable
@@ -330,180 +212,263 @@ class App extends React.Component {
     return props.children;
   }
 
-  async saveMovedTable() {
-    return new Promise((resolve) => {
-      const newPos = {
-        id: this.state.movingTableId,
-        x: this.state.movingTableOldPos.x + this.state.movingTableNewPos.x,
-        y: this.state.movingTableOldPos.y + this.state.movingTableNewPos.y,
-        r: this.state.movingTableNewPos.r,
-      };
+  /** sends a post request to set a new table*/
+  function addTable() {
+    fetch(process.env.REACT_APP_BACKEND + "addTable", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        tableNumber: "",
+        position: {
+          x: Math.floor(Math.random() * 200) + 300,
+          y: Math.floor(Math.random() * 100),
+          r: 0,
+        },
+        user: [],
+        location: locationId,
+      }),
+    }).then(() => setReload(!reload));
+  }
 
+  /** sends a post request to delete a table from the db
+   * @param {number} id table id
+   */
+  function removeTable(id) {
+    fetch(process.env.REACT_APP_BACKEND + "removeTable", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        id: id,
+      }),
+    }).then(() => setReload(!reload));
+  }
+
+  /** sends request to backend to add a user to a table
+   * @param {number} tableId tables id
+   * @param {number} userId users id
+   */
+  async function addUserToTable(tableId, userId) {
+    fetch(process.env.REACT_APP_BACKEND + "addUserToTable", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({
+        userId: userId,
+        tableId: tableId,
+      }),
+    }).then(() => setReload(!reload));
+  }
+
+  /** function that removes a user from a table in the db
+   * @param {number} userId users id
+   * @param {number} tableId tables id
+   */
+  async function removeUserFromTable(userId, tableId) {
+    fetch(process.env.REACT_APP_BACKEND + "removeUserFromTable", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({
+        userId,
+        tableId,
+      }),
+    }).then(() => setReload(!reload));
+  }
+
+  /** function that changes the tables number (/name)
+   * @param {number} tableId tables id
+   * @param {string} newTableNumber table number (can also be letters, so its a string)
+   */
+  function changeTableNumber(tableId, newTableNumber) {
+    fetch(process.env.REACT_APP_BACKEND + "changeTableNumber", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        id: tableId,
+        tableNumber: newTableNumber,
+      }),
+    }).then(() => setReload(!reload));
+  }
+
+  /** function that opens the serach and puts something in the serach bar
+   * @param {string} searchString string to put into the serach bar of the serach thingy
+   */
+  function openSerach(searchString) {
+    console.log("seraching for: " + searchString);
+    // TODO:
+  }
+
+  /** function that sets up everything for the new location (deletes old tables and stuff)
+   * @param {number} id id of the new location
+   */
+  function changeLocation(id) {
+    localStorage.setItem("raumplan", JSON.stringify({ location: id }));
+    setMovingTable(false);
+    setPopupOpen(false);
+    setLocationId(id);
+  }
+
+  /** saves the moved table to the db
+   * @returns {Promise}
+   */
+  async function saveMovedTable() {
+    return new Promise((resolve) => {
       fetch(process.env.REACT_APP_BACKEND + "moveTable", {
         method: "POST",
         headers: {
           "content-type": "application/json",
         },
-        body: JSON.stringify(newPos),
+        body: JSON.stringify({
+          id: movingTableId,
+          x: movingTableOldPos.x + movingTableNewPos.x,
+          y: movingTableOldPos.y + movingTableNewPos.y,
+          r: movingTableNewPos.r,
+        }),
       })
-        .then(async () => await this.fetchTables())
+        .then(() => setReload(!reload))
         .then(resolve);
     });
   }
 
-  render() {
-    return (
-      <>
-        <img
-          src={this.images[this.state.locationData?.img]}
-          id="map"
-          alt={`karte von ${this.images[this.state.locationData?.img]}`}
-        />
-        <div id="app">
-          {this.state.tables?.map((table, i) => (
-            <this.MovingTable
-              key={i}
-              movable={
-                this.state.movingTable && table.id === this.state.movingTableId
+  return (
+    <>
+      <img src={images[locationData?.img] || ""} alt={"map"} id="map" />
+      <div id="app">
+        {tables?.map((table, i) => (
+          <MovingTable
+            key={i}
+            movable={movingTable && table.id === movingTableId}
+            updateNewPos={(elem) =>
+              setMovingTableNewPos({
+                x: elem.x,
+                y: elem.y,
+                r: movingTableNewPos.r,
+              })
+            }
+            rotation={movingTableNewPos.r}
+          >
+            <Table
+              active={
+                table.id === tooltipData.table?.id &&
+                (tooltipVisible || popupOpen)
               }
-              updateNewPos={(elem) => {
-                this.setState({
-                  movingTableNewPos: {
-                    x: elem.x,
-                    y: elem.y,
-                    r: this.state.movingTableNewPos.r, //this should stay the same bc its not the dragging that defines that
-                  },
-                });
-              }}
-              rotation={this.state.movingTableNewPos.r}
-            >
-              <Table
-                key={i}
-                height={this.state.locationData.tableHeight}
-                width={this.state.locationData.tableWidth}
-                fontSize={this.state.locationData.fontSize}
-                data={table}
-                tooltip={(visible) => {
-                  this.setState({ tooltipVisible: visible });
-                }}
-                changeTooltipData={(tableData, userData) => {
-                  this.changeTooltipData(tableData, userData);
-                }}
-                getUser={(id) => this.getUser(id)}
-                getTeam={(team) => this.getTeam(team)}
-                popup={() => this.setState({ popupOpen: true })}
-                popupOpen={this.state.popupOpen}
-                moving={
-                  this.state.movingTable &&
-                  table.id === this.state.movingTableId
-                }
-                newRotation={this.state.movingTableNewPos.r}
-              />
-            </this.MovingTable>
-          ))}
-          <div id="floatingButtons">
-            <div id="addTableContainer" data-tip="Tisch hinzufügen">
-              <button onClick={() => this.addTable()}>
-                <GrFormAdd />
-              </button>
-            </div>
-            <div id="changeLocationContainer" data-tip="Location wechseln">
-              <button
-                onClick={() => {
-                  if (this.locations === undefined) this.fetchAllLocations();
-                  this.setState({
-                    locationDrowDownOpen: !this.state.locationDrowDownOpen,
-                  });
-                }}
-              >
-                <GrMapLocation />
-              </button>
-              <LocationDropdown
-                open={this.state.locationDrowDownOpen}
-                close={() => this.setState({ locationDrowDownOpen: false })}
-                locations={this.locations}
-                currentLocation={this.state.location}
-                changeLocation={(id) => {
-                  this.changeLocation(id);
-                }}
-              />
-            </div>
-          </div>
-          <Tooltip
-            table={this.state.tooltipData.table}
-            visible={this.state.tooltipVisible}
-            popup={this.state.popupOpen}
-            openPopup={() => this.setState({ popupOpen: true })}
-            closePopup={() => this.setState({ popupOpen: false })}
-            changeTableNumber={(id, num) => this.changeTableNumber(id, num)}
-            getTeam={(name) => this.getTeam(name)}
-            getUser={(id) => {
-              return this.getUser(id);
-            }}
-            removeTable={(id) => {
-              if (!window.confirm("Tisch wirklich löschen?")) return;
-              this.removeTable(id);
-              this.setState({ popupOpen: false });
-            }}
-            // edit users
-            deleteUser={(userId, tableId) => {
-              this.removeUserFromTable(userId, tableId);
-            }}
-            addUserFormOpen={(id) => {
-              this.addUserFormOpen(id);
-            }}
-            addUserToTable={(tableId, userId) =>
-              this.addUserToTable(tableId, userId)
-            }
-            updateTables={() => this.fetchTables()}
-            // move tables
-            currentlyMovingTable={this.state.movingTable}
-            moveTable={(tableId, oldPos) =>
-              this.setState({
-                movingTable: true,
-                movingTableId: tableId,
-                movingTableOldPos: oldPos,
-                movingTableNewPos: { x: 0, y: 0, r: oldPos.r },
-              })
-            }
-            spinTable={(degree) =>
-              this.setState({
-                movingTableNewPos: {
-                  x: this.state.movingTableNewPos.x,
-                  y: this.state.movingTableNewPos.y,
-                  r: degree,
-                },
-              })
-            }
-            saveMovedTable={async () => {
-              await this.saveMovedTable();
-              this.setState({
-                movingTable: false,
-                movingTableId: -1,
-                movingTableNewPos: { x: 0, y: 0, r: 0 },
-              });
-            }}
-            resetMovingTable={() => {
-              this.setState({
-                movingTable: false,
-                movingTableId: -1,
-                movingTableNewPos: { x: 0, y: 0, r: 0 },
-              });
-            }}
+              height={locationData.tableHeight}
+              width={locationData.tableWidth}
+              fontSize={locationData.fontSize}
+              data={table}
+              tooltip={(visible) => setTooltipVisible(visible)}
+              changeTooltipData={(tableData, userData) =>
+                setTooltipData({ table: tableData, users: userData })
+              }
+              getUser={(id) => getUser(id)}
+              getTeam={(team) => getTeam(team)}
+              popup={() => setPopupOpen(true)}
+              popupOpen={popupOpen}
+              moving={movingTable && table.id === movingTableId}
+              newRotation={movingTableNewPos.r}
+            />
+          </MovingTable>
+        ))}
+        {teamlocations?.map((location, i) => (
+          <Teamlocation
+            key={i}
+            openSerach={(s) => openSerach(s)}
+            data={location}
           />
-          <ReactTooltip effect="solid" offset={{ left: 5 }} />
+        ))}
+        {rooms?.map((room, i) => (
+          <Room
+            key={i}
+            data={room}
+            openCalender={(data) => setCalender({ visible: true, data: data })}
+          />
+        ))}
+        <div id="floatingButtons">
+          <div id="addTableContainer" data-tip="Tisch hinzufügen">
+            <button onClick={() => addTable()}>
+              <GrFormAdd />
+            </button>
+          </div>
+          <div id="changeLocationContainer" data-tip="Location wechseln">
+            <button
+              onClick={() => SetlocationDropDownOpen(!locationDropDownOpen)}
+            >
+              <GrMapLocation />
+            </button>
+            <LocationDropdown
+              open={locationDropDownOpen}
+              close={() => SetlocationDropDownOpen(false)}
+              locations={locations}
+              currentLocation={locationId}
+              changeLocation={(id) => changeLocation(id)}
+            />
+          </div>
         </div>
-      </>
-    );
-  }
+        <Tooltip
+          table={tooltipData.table}
+          visible={tooltipVisible}
+          popup={popupOpen}
+          openPopup={() => setPopupOpen(true)}
+          closePopup={() => setPopupOpen(false)}
+          changeTableNumber={(id, num) => changeTableNumber(id, num)}
+          getTeam={(name) => getTeam(name)}
+          getUser={(id) => getUser(id)}
+          removeTable={(id) => {
+            if (!window.confirm("Tisch wirklich löschen?")) return;
+            removeTable(id);
+            setPopupOpen(false);
+          }}
+          // edit users
+          deleteUser={(userId, tableId) => removeUserFromTable(userId, tableId)}
+          addUserToTable={(tableId, userId) => addUserToTable(tableId, userId)}
+          updateTables={() => setReload(!reload)}
+          // move tables
+          currentlyMovingTable={movingTable}
+          moveTable={(tableId, oldPos) => {
+            setMovingTableNewPos({ x: 0, y: 0, r: oldPos.r });
+            setMovingTableOldPos(oldPos);
+            setMovingTableId(tableId);
+            setMovingTable(true);
+          }}
+          spinTable={(degree) =>
+            setMovingTableNewPos({
+              x: movingTableNewPos.x,
+              y: movingTableNewPos.y,
+              r: degree,
+            })
+          }
+          saveMovedTable={async () => {
+            await saveMovedTable();
+            setMovingTable(false);
+            setMovingTableId(-1);
+            setMovingTableNewPos({ x: 0, y: 0, r: 0 });
+          }}
+          resetMovingTable={() => {
+            setMovingTable(false);
+            setMovingTableId(-1);
+            setMovingTableNewPos({ x: 0, y: 0, r: 0 });
+          }}
+        />
+        <Calender
+          data={calender.data}
+          visible={calender.visible}
+          close={() => setCalender({ ...calender, visible: false })}
+        />
+      </div>
+      <ReactTooltip effect="solid" offset={{ left: 5 }} />
+    </>
+  );
 }
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
-  //<React.StrictMode>
-  <>
-    <App />
-    <ToastContainer />
-  </>
+  // <React.StrictMode>
+  <App />
   // </React.StrictMode>
 );
+
+//FIXME: fix the table moving jumping back (probably only have to overwrite the position of the table with the new position and that should fix it )
+// TODO: add rooms with calendars and team signs
+// TODO: add serach function

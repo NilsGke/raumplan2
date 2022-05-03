@@ -13,7 +13,7 @@
   color: white;
   max-height: 70%;
   border-radius: 20px;
-  transition: all index.$transDur ease-out;
+  transition: all index.$transDur cubic-bezier(0.18, 0.89, 0.32, 1.28);
   cursor: grab;
   padding: 20px;
   button {

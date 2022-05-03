@@ -23,6 +23,7 @@ body,
 
 #map {
   position: absolute;
+  z-index: -1;
 }
 
 #app {
