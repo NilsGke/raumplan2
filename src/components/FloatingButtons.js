@@ -19,6 +19,7 @@ export default function FloatingButtons(props) {
   const isTabletOrMobile = useMediaQuery({ query: "(max-width: 1224px)" });
 
   const [toggledOpen, setToggledOpen] = useState(false);
+  if (props.forceOpen) setToggledOpen(true);
 
   return (
     <>
@@ -108,9 +109,14 @@ export default function FloatingButtons(props) {
           style={{
             transform: `rotate(${toggledOpen ? 90 : 0}deg)`,
           }}
-          onClick={() => setToggledOpen(!toggledOpen)}
+          onClick={() => {
+            if (toggledOpen) {
+              props.setSearchOpen(false);
+              props.setlocationDropDownOpen(false);
+            }
+            setToggledOpen(!toggledOpen);
+          }}
         >
-          {/* <AiOutlineMenu /> */}
           <Hamburger toggled={toggledOpen} color="white" />
         </button>
         <LocationDropdown
@@ -124,14 +130,11 @@ export default function FloatingButtons(props) {
           images={props.images}
           close={() => props.setSearchOpen(false)}
           open={props.searchOpen}
-          getTeam={(n) => props.getTeam(n)}
           highlightRoom={(name) => props.setHighlightedRoom(name)}
           highlightTable={(id) => props.setHighlightedTable(id)}
-          currentLocation={props.locationId}
           changeLocation={(id) => props.changeLocation(id)}
           overwrite={props.searchOverwrite}
           clearOverwrite={() => props.clearOverwrite(false)}
-          addUsersToStorage={(newUsers) => props.addUsersToStorage(newUsers)}
         />
       </div>
     </>

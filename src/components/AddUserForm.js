@@ -3,6 +3,8 @@ import fetch from "sync-fetch";
 import { CONFIG } from "../index";
 import { AiOutlineClose } from "react-icons/ai";
 import User from "./User";
+import { addUsers } from "../helpers/users";
+import { getTeam } from "../helpers/teams";
 import "../styles/addUserForm.scss";
 
 export default function AddUserForm(props) {
@@ -24,17 +26,22 @@ export default function AddUserForm(props) {
         teams: user.Organisationseinheiten.split(",")
           .map((team) => team.replace(": Seibert Media (SM)", "").trim())
           .filter((s) => s.length > 0)
-          .map((teamName) => props.getTeam(teamName)),
+          .map((teamName) => getTeam(teamName)),
       };
     });
     setUsers(newUsers);
+    addUsers(newUsers);
   };
 
   let searchString = "";
 
   let noData = "";
   if (searchString.length < CONFIG.minSearchLengh) {
-    noData = <div className="noData">Enter more characters...</div>;
+    noData = (
+      <div className="noData">
+        Mindestens {CONFIG.minSearchLengh} Buchstaben eingeben...
+      </div>
+    );
   } else if (users.length === 0)
     noData = <div className="noData">Kein Mitarbeiter gefunden</div>;
 
@@ -73,7 +80,7 @@ export default function AddUserForm(props) {
             {users.map((user, i) => {
               return (
                 <User
-                  key={i}
+                  key={user.id}
                   user={user}
                   deletable={false}
                   clickable={true}

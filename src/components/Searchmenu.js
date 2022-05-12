@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
-import User from "./User";
+import User from "./Userid";
 // icons
 import { BsDoorClosed } from "react-icons/bs";
 import { GiTable } from "react-icons/gi";
 import { GrGroup } from "react-icons/gr";
+// helpers
+import { addUsers } from "../helpers/users";
 // css
 import "../styles/searchMenu.scss";
 
@@ -40,7 +42,6 @@ export default function Searchmenu(props) {
         )
           .then((res) => res.json())
           .then((users) => {
-            console.log(users);
             const tables = [];
             Promise.all(
               users.map(
@@ -78,7 +79,7 @@ export default function Searchmenu(props) {
   }, [searchString]);
 
   useEffect(() => {
-    if (results.users.length > 0) props.addUsersToStorage(results.users);
+    if (results.users.length > 0) addUsers(results.users);
   }, [results, props]);
 
   useEffect(() => {
@@ -142,9 +143,7 @@ export default function Searchmenu(props) {
                     className="room"
                     key={"room" + room.name + room.location}
                     onClick={() => {
-                      // IDEA: maybe remove this line, since it can just change to the current location?
-                      if (props.currentLocation !== room.location)
-                        props.changeLocation(room.location);
+                      props.changeLocation(room.location);
                       props.highlightRoom(room.name);
                     }}
                   >
@@ -173,7 +172,7 @@ export default function Searchmenu(props) {
               results.users.map((user, i) => (
                 <User
                   key={"user" + user.id}
-                  user={user}
+                  id={user.id}
                   getTeam={props.getTeam}
                   clickable={true}
                   clickHandler={() => {
@@ -191,8 +190,7 @@ export default function Searchmenu(props) {
                     className="table"
                     key={table.id}
                     onClick={() => {
-                      if (props.currentLocation !== table.location)
-                        props.changeLocation(table.location);
+                      props.changeLocation(table.location);
                       props.highlightTable(table.id);
                     }}
                   >

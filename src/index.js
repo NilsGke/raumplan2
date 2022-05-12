@@ -14,10 +14,8 @@ import "./styles/index.scss";
 import FloatingButtons from "./components/FloatingButtons";
 import FeedbackApp from "./pages/feedback";
 
-const fetchSync = require("sync-fetch");
-
 export const CONFIG = {
-  reload: 5, // refresh time in seconds
+  reload: 0, // refresh time in seconds
   minSearchLengh: 0,
 };
 
@@ -32,13 +30,7 @@ function importImages(r) {
 /**variable to hold locations*/
 let locations = [];
 
-/**variable to hold all users*/
-const users = [];
-
-/**variable to hold all teams*/
-const teams = [];
-
-let interval;
+let interval = null;
 
 export const MODIFIER_PREFIX =
   window.navigator.appVersion.indexOf("Mac") !== -1 ? "⌘" : "^";
@@ -50,7 +42,6 @@ if (stored === undefined)
 const loactionInUrl = parseInt(window.location.hash.replace("#", ""));
 
 function App() {
-  console.log(users);
   const [locationId, setLocationId] = useState(
     loactionInUrl || stored?.location || 3
   );
@@ -98,17 +89,13 @@ function App() {
   const tooltipRef = useRef();
 
   useEffect(() => {
-    if (CONFIG.reload > 0 && interval === null) {
-      interval = setInterval(
-        () => setLocationId(locationId),
-        CONFIG.reload * 1000
-      );
-    }
+    if (CONFIG.reload > 0 && interval === null)
+      interval = setInterval(() => setReloadTables(true), CONFIG.reload * 1000);
 
     return () => {
       clearInterval(interval);
     };
-  });
+  }, []);
 
   // location change
   useEffect(() => {
@@ -311,48 +298,6 @@ function App() {
     };
   }, [handleKeyPress]);
 
-  /** function that given a userid returns the user object and if user is not avalible yet, fetches it
-   * @param {number} userId user id
-   * @returns user object
-   */
-  function getUser(userId) {
-    const user = users.find((u) => u.id === userId);
-    // if the user is not found, it fetches the user
-    if (user === undefined) {
-      const user = fetchSync(
-        process.env.REACT_APP_BACKEND + "users/" + userId
-      ).json()[0];
-      users.push(user);
-    }
-    return users.find((u) => u.id === userId);
-  }
-
-  /** function that given a team name returns the team object and if team is not avalible yet, fethes it
-   * @param {string} teamName team name
-   * @returns team object
-   */
-  function getTeam(teamName) {
-    const team = teams.find((t) => t.name === teamName);
-    // if team is not found it fetches it
-    if (team === undefined) {
-      let team;
-      try {
-        team = fetchSync(
-          process.env.REACT_APP_BACKEND + "teams/" + teamName
-        ).json()[0];
-      } catch (error) {
-        // if team does not exist in db then error and add fake team data
-        console.warn(
-          `Could not find team: ${teamName}\nConsider adding it to the database!`
-        );
-        team = { id: -1, name: teamName, color: "#1c1e26" };
-      } finally {
-        teams.push(team);
-      }
-    }
-    return teams.find((t) => t.name === teamName);
-  }
-
   /** sends a post request to set a new table*/
   function addTable() {
     fetch(process.env.REACT_APP_BACKEND + "addTable", {
@@ -438,6 +383,7 @@ function App() {
    */
   function openSearch(searchString) {
     setSearchOpen(true);
+
     setLocationDropDownOpen(false);
     setSearchOverwrite(searchString);
   }
@@ -446,6 +392,7 @@ function App() {
    * @param {number} id id of the new location
    */
   function changeLocation(id) {
+    if (locationId === id) return;
     localStorage.setItem("raumplan", JSON.stringify({ location: id }));
     setMovingTable(false);
     setPopupOpen(false);
@@ -484,13 +431,6 @@ function App() {
     setMovingTableOldPos({ x: 0, y: 0, r: 0 });
   }
 
-  function addUsersToStorage(newUsers) {
-    const userIds = users.map((u) => u.id).slice();
-    newUsers
-      .filter((u) => !userIds.includes(u.id))
-      .forEach((u) => users.push(u));
-  }
-
   return (
     <>
       <ReactTooltip
@@ -508,6 +448,15 @@ function App() {
           />
         ))}
 
+        {rooms?.map((room, i) => (
+          <Room
+            key={i}
+            data={room}
+            highlighted={room.name === highlightedRoom}
+            openCalender={(data) => setCalender({ visible: true, data: data })}
+          />
+        ))}
+
         {tables?.map((table, i) => {
           let draggableProps = {
             disabled: !(movingTable && table.id === movingTableId),
@@ -522,8 +471,8 @@ function App() {
               defaultPosition={{ x: 0, y: 0 }}
               onStop={(e, elem) => {
                 setMovingTableNewPos({
-                  x: elem.x,
-                  y: elem.y,
+                  x: movingTableNewPos.x + elem.x,
+                  y: movingTableNewPos.y + elem.y,
                   r: movingTableNewPos.r,
                 });
               }}
@@ -531,45 +480,25 @@ function App() {
               <div>
                 <Table
                   highlighted={highlightedTable === table.id}
-                  movable={movingTable && table.id === movingTableId}
-                  rotation={movingTableNewPos.r}
                   active={
                     table.id === tooltipData.table?.id &&
                     (tooltipVisible || popupOpen)
                   }
-                  height={locationData.tableHeight}
-                  width={locationData.tableWidth}
-                  fontSize={locationData.fontSize}
+                  locationData={locationData}
                   data={table}
                   tooltip={(visible) => setTooltipVisible(visible)}
-                  changeTooltipData={(tableData, userData) =>
-                    setTooltipData({ table: tableData, users: userData })
-                  }
-                  getUser={(id) => getUser(id)}
-                  getTeam={(team) => getTeam(team)}
+                  changeTooltipData={(table) => setTooltipData({ table })}
                   popup={() => setPopupOpen(true)}
                   popupOpen={popupOpen}
                   moving={movingTable && table.id === movingTableId}
                   newPosition={movingTableNewPos}
-                  newRotation={movingTableNewPos.r}
                 />
               </div>
             </Draggable>
           );
         })}
-        {rooms?.map((room, i) => (
-          <Room
-            key={i}
-            data={room}
-            highlighted={room.name === highlightedRoom}
-            openCalender={(data) => setCalender({ visible: true, data: data })}
-          />
-        ))}
-
         <FloatingButtons
           images={images}
-          getTeam={(name) => getTeam(name)}
-          // getUser={(name) => getUser(name)}
           searchOpen={searchOpen}
           setSearchOpen={(val) => {
             setSearchOpen(val);
@@ -581,9 +510,7 @@ function App() {
           highlightTable={(id) => setHighlightedTable(id)}
           currentLocation={locationId}
           changeLocation={(id) => changeLocation(id)}
-          overwrite={searchOverwrite}
           clearOverwrite={() => setSearchOverwrite(false)}
-          addUsersToStorage={(newUsers) => addUsersToStorage(newUsers)}
           reloadTables={reloadTables}
           locationDropDownOpen={locationDropDownOpen}
           setlocationDropDownOpen={(val) => setLocationDropDownOpen(val)}
@@ -598,8 +525,6 @@ function App() {
           openPopup={() => setPopupOpen(true)}
           closePopup={() => setPopupOpen(false)}
           changeTableNumber={(id, num) => changeTableNumber(id, num)}
-          getTeam={(name) => getTeam(name)}
-          getUser={(id) => getUser(id)}
           removeTable={(id) => {
             if (!window.confirm("Tisch wirklich löschen?")) return;
             removeTable(id);
@@ -661,7 +586,8 @@ function Router() {
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(<Router />);
 
-/* FIXME: when moving a table, not closing tooltip then editing table and instandly clicking on save, the table moves back to its original place. Why tf does it do that? idk. The crazy thig is that if you close the popup it doesnt do it, so i assume the table pos is somehow saved in the popup?
+/* FIXME: a lot of requests are getting sent when fetching a lot of users and it takes some time. maybe have some kind of storage that knows which user(s) are getting fetched rn
+ * FIXME: when moving a table, not closing tooltip then editing table and instandly clicking on save, the table moves back to its original place. Why tf does it do that? idk. The crazy thig is that if you close the popup it doesnt do it, so i assume the table pos is somehow saved in the popup? (might be fixed when fixing the error below (table skipping around when moving multiple times))
  * FIXME: when deleting a user it openes the search
  * TODO: remove possible sql vonurabilities shown here: https://stackoverflow.com/questions/67244680/multiple-sql-queries-in-node-js
  * TODO: fix all the z index table things (maybe make some kind of visual on how they are stacked)

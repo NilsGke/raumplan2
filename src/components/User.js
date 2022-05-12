@@ -1,12 +1,42 @@
 import React from "react";
+import { getTeam } from "../helpers/teams";
 import "../styles/user.scss";
 // icons
 import { BsTrashFill } from "react-icons/bs";
 
 export default function User(props) {
-  const teams = props.user.Organisationseinheiten.split(",").map((t) =>
-    props.getTeam(t.replace(": Seibert Media (SM)", "").trim())
-  );
+  const teams = props.blueprint
+    ? []
+    : props.user.Organisationseinheiten.split(",").map((t) =>
+        getTeam(t.replace(": Seibert Media (SM)", "").trim())
+      );
+  if (props.blueprint)
+    return (
+      <div className="user">
+        <h3>
+          <span className="loadingText">name</span>
+        </h3>
+        <h4>
+          <span className="loadingText">Anmeldename</span>
+        </h4>
+        <div
+          className="teams"
+          style={{
+            gridTemplateColumns: teams.length > 2 ? "auto auto" : "auto",
+          }}
+        >
+          <div
+            className="team"
+            style={{
+              background: "grey",
+              color: "white",
+            }}
+          >
+            <span className="loadingText">team</span>
+          </div>
+        </div>
+      </div>
+    );
   return (
     <div
       className="user"
