@@ -1,8 +1,7 @@
 import React, { useState, useImperativeHandle, forwardRef } from "react";
-// import ReactDOM from "react-dom";
 import Draggable from "react-draggable";
 
-import User from "./User";
+import User from "./Userid";
 import AddUserForm from "./AddUserForm";
 
 import "../styles/tooltip.scss";
@@ -29,9 +28,6 @@ const Tooltip = forwardRef((props, ref) => {
         },
       }
     : [];
-  const userCount = (
-    props.table?.user.split(";").filter((s) => s.length > 0) || []
-  ).length;
 
   useImperativeHandle(ref, () => ({
     closeAddUserForm() {
@@ -47,6 +43,9 @@ const Tooltip = forwardRef((props, ref) => {
         overflow: "hidden",
       }
     : {};
+
+  const userIds =
+    props.table?.user.split(";").filter((s) => s.length > 0) || [];
 
   return (
     <>
@@ -162,37 +161,31 @@ const Tooltip = forwardRef((props, ref) => {
               "noDragHere" + (props.currentlyMovingTable ? " hidden" : "")
             }
             style={{
-              gridTemplateColumns: userCount > 1 ? "auto auto" : "auto",
-              width: userCount < 2 ? 250 : userCount > 4 ? 600 : 420,
-              justifyContent: userCount < 3 ? "center" : "flex-start",
+              gridTemplateColumns: userIds.length > 1 ? "auto auto" : "auto",
+              width: userIds.length < 2 ? 250 : userIds.length > 4 ? 600 : 420,
+              justifyContent: userIds.length < 3 ? "center" : "flex-start",
             }}
           >
-            {(
-              props.table?.user.split(";").filter((s) => s.length > 0) || []
-            ).map((user, i) => {
-              const u = props.getUser(user);
-              return (
-                <div key={i} className="userContainer">
-                  <User
-                    deletable={true}
-                    deleteUser={(userId) => {
-                      const users = props.table.user.split(";");
-                      users.splice(users.indexOf(userId), 1);
-                      props.table.user = users.join(";");
-                      props.deleteUser(userId, props.table?.id);
-                    }}
-                    getTeam={(name) => props.getTeam(name)}
-                    key={i}
-                    user={u}
-                    clickable={true}
-                    clickHandler={() => {
-                      console.log(u);
-                      props.openSearch("user: " + u.Person);
-                    }}
-                  />
-                </div>
-              );
-            }) || <span className="noData">keine Personen</span>}
+            {userIds.map((userId, i) => (
+              <div key={userId} className="userContainer">
+                <User
+                  id={userId}
+                  deletable={true}
+                  deleteUser={() => {
+                    // remove user from table in database
+                    props.deleteUser(userId, props.table?.id);
+                    // remove user from this table element (might fix some time, so tables get reloaded) FIXME:
+                    const users = props.table.user.split(";");
+                    users.splice(users.indexOf(userId), 1);
+                    props.table.user = users.join(";");
+                  }}
+                  clickable={true}
+                  clickHandler={({ Person }) => {
+                    props.openSearch("user: " + Person);
+                  }}
+                />
+              </div>
+            )) || <span className="noData">keine Personen</span>}
           </div>
           <div
             id="controls"
