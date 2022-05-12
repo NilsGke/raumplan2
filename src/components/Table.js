@@ -1,37 +1,7 @@
-import React, { useState } from "react";
+import React from "react";
 import "../styles/table.scss";
-// const fetch = require("sync-fetch");
 
 export default function Table(props) {
-  const [userData, setUserData] = useState(false);
-
-  function fetchUsers(userIDs) {
-    const users = userIDs
-      // .map((id) => fetch(process.env.REACT_APP_BACKEND + "users/" + id).json())
-      .map((id) => props.getUser(id))
-      .flat()
-      .map((user) => {
-        return {
-          ...user,
-          teams: user.Organisationseinheiten.split(", ")
-            .map((teamName) => {
-              try {
-                return props.getTeam(
-                  teamName.replace(": Seibert Media (SM)", "").trim()
-                );
-              } catch (error) {
-                console.warn(error);
-              }
-              return null;
-            })
-            .flat(),
-        };
-      });
-
-    setUserData(users);
-    props.changeTooltipData(props.data, userData);
-  }
-
   return (
     <div
       className={
@@ -44,9 +14,9 @@ export default function Table(props) {
         props.popup();
       }}
       style={{
-        height: props.height + "px",
-        width: props.width + "px",
-        fontSize: props.fontSize,
+        height: props.locationData.tableHeight + "px",
+        width: props.locationData.tableWidth + "px",
+        fontSize: props.locationData.fontSize,
         top: props.moving ? props.data.y + props.newPosition.y : props.data.y,
         left: props.moving ? props.data.x + props.newPosition.x : props.data.x,
         transform: props.moving
@@ -56,11 +26,7 @@ export default function Table(props) {
       onMouseEnter={() => {
         if (props.popupOpen) return;
         props.tooltip(true);
-        if (!userData) {
-          fetchUsers(props.data.user.split(";").filter((s) => s.length > 0));
-        } else {
-          props.changeTooltipData(props.data, userData);
-        }
+        props.changeTooltipData(props.data);
       }}
       onMouseLeave={() => {
         props.tooltip(false);
