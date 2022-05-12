@@ -13,7 +13,7 @@
   h3,
   h4 {
     white-space: nowrap;
-    margin: 0;
+    margin: 2px 0;
     z-index: 3;
   }
   .removeUserContainer {
@@ -50,6 +50,39 @@
       border-radius: 5px;
       white-space: nowrap;
       padding: 0 5px;
+    }
+  }
+
+  &.blueprint {
+    > * {
+      margin: 2px 0;
+    }
+    span.loadingText,
+    .team,
+    h3,
+    h4 {
+      animation: bg_blink 0.5s ease-in-out infinite alternate-reverse;
+      border-radius: 6px;
+      height: 19px;
+    }
+    .w1 {
+      width: 140px;
+    }
+    .w2 {
+      width: 70px;
+    }
+    .w3 {
+      width: 100px;
+    }
+    @keyframes bg_blink {
+      from {
+        background-color: #818283;
+        color: #818283;
+      }
+      to {
+        background-color: #696969;
+        color: #696969;
+      }
     }
   }
 }
