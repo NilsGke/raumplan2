@@ -14,9 +14,16 @@ export default function Table(props) {
         return {
           ...user,
           teams: user.Organisationseinheiten.split(", ")
-            .map((teamName) =>
-              props.getTeam(teamName.replace(": Seibert Media (SM)", "").trim())
-            )
+            .map((teamName) => {
+              try {
+                return props.getTeam(
+                  teamName.replace(": Seibert Media (SM)", "").trim()
+                );
+              } catch (error) {
+                console.warn(error);
+              }
+              return null;
+            })
             .flat(),
         };
       });
@@ -27,7 +34,11 @@ export default function Table(props) {
 
   return (
     <div
-      className={"table " + (props.active ? " active" : "")}
+      className={
+        "table " +
+        (props.active ? " active " : "") +
+        (props.highlighted ? " highlighted " : "")
+      }
       onClick={(e) => {
         if (e.nativeEvent.pointerType === "touch") return; // dont open popup if touched on mobile (thats what the edit button is for)
         props.popup();
@@ -36,10 +47,10 @@ export default function Table(props) {
         height: props.height + "px",
         width: props.width + "px",
         fontSize: props.fontSize,
-        top: props.data.y,
-        left: props.data.x,
+        top: props.moving ? props.data.y + props.newPosition.y : props.data.y,
+        left: props.moving ? props.data.x + props.newPosition.x : props.data.x,
         transform: props.moving
-          ? `rotate(${props.newRotation}deg)`
+          ? `rotate(${props.newPosition.r}deg)`
           : `rotate(${props.data.r}deg)`,
       }}
       onMouseEnter={() => {

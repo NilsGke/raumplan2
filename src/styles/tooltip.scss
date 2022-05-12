@@ -84,19 +84,35 @@
     justify-content: center;
     align-items: center;
     overflow: hidden;
-    height: 100px;
+    height: 150px;
     h3,
     h4 {
       margin: 5px 0;
     }
-    h4 {
+    h5 {
       color: #818283;
     }
     &.hidden {
       height: 0;
     }
-    input {
-      width: 60%;
+    div#rotateTableInput {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      input {
+        width: 60%;
+      }
+      button {
+        background: none;
+        color: white;
+        border: 1px solid #3e3f42;
+        border-radius: 10px;
+        font-size: 20px;
+        height: 25px;
+        width: 25px;
+        margin: 0 20px;
+      }
     }
   }
   #usersContainer {
@@ -113,17 +129,17 @@
     overflow-x: hidden;
     .userContainer {
       overflow: hidden;
-      height: 100px;
+      // height: 100px;
     }
 
     // scrollbar
     & {
       /* width */
       &::-webkit-scrollbar {
-        transition: all 0.2s ease-in-out;
+        transition: all index.$transDur ease-in-out;
         width: 6px;
+        width: 10px;
         &:hover {
-          width: 10px;
         }
       }
       /* Track */
@@ -136,7 +152,7 @@
       }
       /* Handle */
       &::-webkit-scrollbar-thumb {
-        transition: all 0.2s ease-in-out;
+        transition: all index.$transDur ease-in-out;
         background: #323336;
         border-radius: 10px;
         &:hover {
@@ -146,8 +162,8 @@
       /* Handle on hover */
       &::-webkit-scrollbar-thumb:hover {
         background: #3e3f42;
+        width: 10px;
         &:hover {
-          width: 10px;
         }
       }
     }
@@ -205,21 +221,25 @@
     }
     #usersContainer {
       grid-gap: 10px;
-      .user {
-        h3 {
-          margin-right: 30px;
-        }
-        .removeUserContainer {
-          right: 10px;
-          button {
-            font-size: 20px;
+      .userContainer {
+        max-height: 100px;
+        .user {
+          h3 {
+            margin-right: 30px;
           }
+          .removeUserContainer {
+            transition: all index.$transDur ease-in-out;
+            right: 10px;
+            button {
+              font-size: 20px;
+            }
+          }
+          padding: 15px;
         }
-        padding: 15px;
       }
       &.hidden {
         .userContainer {
-          height: 0;
+          max-height: 0;
         }
       }
     }

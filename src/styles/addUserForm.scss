@@ -106,7 +106,7 @@
       & {
         /* width */
         &::-webkit-scrollbar {
-          transition: all 0.2s ease-in-out;
+          transition: all index.$transDur ease-in-out;
           width: 6px;
           &:hover {
             width: 10px;
@@ -122,7 +122,7 @@
         }
         /* Handle */
         &::-webkit-scrollbar-thumb {
-          transition: all 0.2s ease-in-out;
+          transition: all index.$transDur ease-in-out;
           background: #323336;
           border-radius: 10px;
           &:hover {

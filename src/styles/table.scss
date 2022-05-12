@@ -7,20 +7,24 @@
   user-select: none; /* Non-prefixed version, currently supported by Chrome, Opera and Firefox */
 }
 
-.table {
-  @extend .noselect;
-  position: absolute;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  line-height: 1;
-  background-color: #cfdcff;
-  border-radius: 3px;
-  border: 1px solid #253460;
-  cursor: pointer;
-  transition: background-color 0.4s ease-in-out;
-  &.active {
-    background-color: #00ffb3;
-    z-index: 2;
+#app > .react-draggable {
+  z-index: 2;
+  .table {
+    @extend .noselect;
+    position: absolute;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    line-height: 1;
+    background-color: #cfdcff;
+    border-radius: 3px;
+    border: 1px solid #253460;
+    z-index: 1;
+    cursor: pointer;
+    transition: background-color 0.4s ease-in-out;
+    &.active {
+      background-color: #00ffb3;
+      z-index: 2;
+    }
   }
 }

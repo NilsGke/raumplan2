@@ -28,37 +28,49 @@ body,
 
 #app {
   background-repeat: no-repeat;
+  z-index: -1;
 }
 
-#floatingButtons {
-  display: flex;
-  flex-direction: column;
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  width: min-content;
-  gap: 10px;
-  > div {
-    > button {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 10px;
-      padding: 0;
-      background-color: #323336;
-      border: none;
-      color: white;
-      border-radius: 100px;
-      font-size: 30px;
-      height: 50px;
-      width: 50px;
-      cursor: pointer;
-      * {
-        cursor: pointer;
-      }
-      svg {
-        filter: invert(1);
-      }
+// .__react_component_tooltip {
+//   z-index: 1 !important;
+// }
+
+.highlighted:after {
+  height: 100px;
+  width: 100px;
+  content: "";
+  background: transparent;
+  position: absolute;
+  border: 3px solid #57ff57ad;
+  border-radius: 100%;
+  z-index: 2;
+  animation: blink 1s ease-in-out 0s infinite alternate-reverse;
+
+  @keyframes blink {
+    0% {
+      border: 20px solid #57ff57ad;
+      // border-color: #ff5757ad;
+      height: 150px;
+      width: 150px;
+    }
+
+    // 20% {
+    //     border-color: #fcff57ad;
+    // }
+    // 40% {
+    //     border-color: #57ff5fad;
+    // }
+    // 60% {
+    //     border-color: #57f4ffad;
+    // }
+    // 60% {
+    //     border-color: #5776ffad;
+    // }
+    100% {
+      border: 10px solid #57ff57ad;
+      // border-color: #c157ffad;
+      height: 30px;
+      width: 30px;
     }
   }
 }

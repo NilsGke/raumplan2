@@ -15,7 +15,7 @@ export default function Calender(props) {
             <AiOutlineClose />
           </button>
         </div>
-        <iframe src={props.data?.link}></iframe>
+        <iframe title="Calender" src={props.data?.link}></iframe>
       </div>
     </>
   );

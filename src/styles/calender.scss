@@ -1,5 +1,7 @@
+@use "index";
+
 #calenderBackground {
-  transition: all 0.2s ease-in-out;
+  transition: all index.$transDur ease-in-out;
 
   opacity: 0;
   z-index: -2;
@@ -33,7 +35,7 @@
   height: clamp(0px, 80%, 1300px);
   opacity: 0;
   z-index: -3;
-  transition: all 0.2s ease-in-out;
+  transition: all index.$transDur ease-in-out;
 
   $titleHeight: 10%;
 

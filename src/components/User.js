@@ -10,8 +10,10 @@ export default function User(props) {
   return (
     <div
       className="user"
+      style={props.clickable ? { cursor: "pointer" } : {}}
       onClick={() => {
-        if (props.clickable) props.clickHandler(props.user.id);
+        if (props.clickable)
+          props.clickHandler(props.user.id, props.user.Person);
       }}
     >
       <h3>{props.user.Person}</h3>

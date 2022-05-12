@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useImperativeHandle, forwardRef } from "react";
 // import ReactDOM from "react-dom";
 import Draggable from "react-draggable";
 
@@ -14,7 +14,7 @@ import { FaEdit } from "react-icons/fa";
 import { HiUserAdd } from "react-icons/hi";
 import { GrPowerReset } from "react-icons/gr";
 
-export default function Tooltip(props) {
+const Tooltip = forwardRef((props, ref) => {
   const [visible, setVisibility] = useState(false);
   const [addUserFormOpen, openUserForm] = useState(false);
 
@@ -32,6 +32,13 @@ export default function Tooltip(props) {
   const userCount = (
     props.table?.user.split(";").filter((s) => s.length > 0) || []
   ).length;
+
+  useImperativeHandle(ref, () => ({
+    closeAddUserForm() {
+      openUserForm(false);
+    },
+    addUserFormOpen: addUserFormOpen,
+  }));
 
   const hideButton = props.currentlyMovingTable
     ? {
@@ -75,6 +82,7 @@ export default function Tooltip(props) {
             <input
               type="text"
               id="tableNumber"
+              className="noDragHere"
               defaultValue={defaultValue}
               autoComplete="off"
               disabled={!props.popup}
@@ -84,13 +92,26 @@ export default function Tooltip(props) {
               }}
             />
           </form>
-          <div id="editButtonContainer">
-            <button onClick={() => props.openPopup()}>
+          <div
+            id="editButtonContainer"
+            className="noDragHere"
+            data-tip={"Bearbeiten"}
+            onMouseOver={() => props.setHoverTooltopPosition("left")}
+          >
+            <button
+              onClick={() => props.openPopup()}
+              // onTouchStart={() => props.openPopup()}
+              className="noDragHere"
+            >
               <FaEdit />
             </button>
           </div>
           <div id="closeButtonContainer">
-            <button onClick={() => props.closePopup()} style={hideButton}>
+            <button
+              onClick={() => props.closePopup()}
+              className="noDragHere"
+              style={hideButton}
+            >
               <AiOutlineClose />
             </button>
           </div>
@@ -102,20 +123,44 @@ export default function Tooltip(props) {
             }
           >
             <h3>Tisch drehen / verschieben</h3>
-            <input
-              type="range"
-              defaultValue={props.table?.r}
-              name="posRinput"
-              id="posR"
-              min={0}
-              max={360}
-              onChange={(e) => props.spinTable(e.target.value)}
-            />
-            <h4>Schiebe den Tisch mit der Maus</h4>
+            <h4>{props.newRotation || props.table?.r}°</h4>
+            <div id="rotateTableInput" className="noDragHere">
+              <button
+                className="noDragHere"
+                onClick={() => {
+                  if (props.newRotation === 0) return;
+                  props.spinTable(props.newRotation - 1);
+                }}
+              >
+                −
+              </button>
+              <input
+                className="noDragHere"
+                type="range"
+                defaultValue={props.newRotation || props.table?.r}
+                name="posRinput"
+                id="posR"
+                min={0}
+                max={360}
+                onChange={(e) => props.spinTable(parseInt(e.target.value))}
+              />
+              <button
+                className="noDragHere"
+                onClick={() => {
+                  if (props.newRotation === 360) return;
+                  props.spinTable(props.newRotation + 1);
+                }}
+              >
+                +
+              </button>
+            </div>
+            <h5>Schiebe den Tisch mit der Maus oder den Pfeiltasten</h5>
           </div>
           <div
             id="usersContainer"
-            className={props.currentlyMovingTable ? "hidden" : ""}
+            className={
+              "noDragHere" + (props.currentlyMovingTable ? " hidden" : "")
+            }
             style={{
               gridTemplateColumns: userCount > 1 ? "auto auto" : "auto",
               width: userCount < 2 ? 250 : userCount > 4 ? 600 : 420,
@@ -139,16 +184,26 @@ export default function Tooltip(props) {
                     getTeam={(name) => props.getTeam(name)}
                     key={i}
                     user={u}
+                    clickable={true}
+                    clickHandler={() => {
+                      console.log(u);
+                      props.openSearch("user: " + u.Person);
+                    }}
                   />
                 </div>
               );
             }) || <span className="noData">keine Personen</span>}
           </div>
-          <div id="controls">
+          <div
+            id="controls"
+            className="noDragHere"
+            onMouseOver={() => props.setHoverTooltopPosition("bottom")}
+          >
             <button
               id="add"
               className={props.currentlyMovingTable ? "hidden " : ""}
               onClick={() => openUserForm(true)}
+              data-tip={"Person hinzufügen"}
             >
               <HiUserAdd />
             </button>
@@ -156,6 +211,7 @@ export default function Tooltip(props) {
               id="save"
               className={!props.currentlyMovingTable ? "hidden " : ""}
               onClick={() => props.saveMovedTable()}
+              data-tip={"Speichern"}
             >
               <FiCheck />
             </button>
@@ -169,6 +225,7 @@ export default function Tooltip(props) {
                   r: props.table.r,
                 })
               }
+              data-tip="verschieben / drehen"
             >
               <FiMove />
             </button>
@@ -176,6 +233,7 @@ export default function Tooltip(props) {
               id="reset"
               className={!props.currentlyMovingTable ? "hidden " : ""}
               onClick={() => props.resetMovingTable()}
+              data-tip={"Abbrechen"}
             >
               <GrPowerReset />
             </button>
@@ -183,6 +241,7 @@ export default function Tooltip(props) {
               id="delete"
               className={props.currentlyMovingTable ? "hidden " : ""}
               onClick={() => props.removeTable(props.table?.id)}
+              data-tip={"Löschen"}
             >
               <BsTrashFill />
             </button>
@@ -203,4 +262,6 @@ export default function Tooltip(props) {
       />
     </>
   );
-}
+});
+
+export default Tooltip;

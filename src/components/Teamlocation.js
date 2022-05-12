@@ -9,7 +9,7 @@ export default function Teamlocation(props) {
         left: props.data.x,
         color: props.data.color,
       }}
-      onClick={() => props.openSerach(props.data.name)}
+      onClick={() => props.openSearch(props.data.name)}
     >
       {props.data.name}
     </div>
