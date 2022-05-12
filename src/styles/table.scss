@@ -1,3 +1,5 @@
+@use "index";
+
 .noselect {
   -webkit-touch-callout: none; /* iOS Safari */
   -webkit-user-select: none; /* Safari */
@@ -9,6 +11,13 @@
 
 #app > .react-draggable {
   z-index: 2;
+  &:not(.react-draggable-dragging) {
+    transition: all index.$transDur ease-in-out;
+    .table {
+      transition: all index.$transDur ease-in-out;
+    }
+  }
+
   .table {
     @extend .noselect;
     position: absolute;
@@ -21,7 +30,7 @@
     border: 1px solid #253460;
     z-index: 1;
     cursor: pointer;
-    transition: background-color 0.4s ease-in-out;
+    transition: background-color index.$transDur ease-in-out;
     &.active {
       background-color: #00ffb3;
       z-index: 2;
