@@ -13,7 +13,8 @@
   color: white;
   max-height: 70%;
   border-radius: 20px;
-  transition: all index.$transDur cubic-bezier(0.18, 0.89, 0.32, 1.28);
+  // transition: all index.$transDur cubic-bezier(0.18, 0.89, 0.32, 1.28);
+  transition: all calc(index.$transDur) ease-in-out;
   cursor: grab;
   padding: 20px;
   button {
@@ -91,6 +92,7 @@
     }
     h5 {
       color: #818283;
+      text-align: center;
     }
     &.hidden {
       height: 0;
@@ -112,6 +114,13 @@
         height: 25px;
         width: 25px;
         margin: 0 20px;
+        cursor: pointer;
+        &:hover {
+          background-color: #323336;
+        }
+        &:active {
+          background-color: #3e3f42;
+        }
       }
     }
   }
@@ -265,5 +274,8 @@
   &.dragging {
     transition: none;
     cursor: grabbing;
+  }
+  .noDragHere {
+    cursor: initial;
   }
 }
