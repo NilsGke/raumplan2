@@ -1,70 +1,34 @@
-# Getting Started with Create React App
+# Raumplan 2.0
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+![JavaScript](https://img.shields.io/badge/javascript-%23323330.svg?style=for-the-badge&logo=javascript&logoColor=%23F7DF1E)
+![NodeJS](https://img.shields.io/badge/node.js-6DA55F?style=for-the-badge&logo=node.js&logoColor=white)
+![React](https://img.shields.io/badge/react-%2320232a.svg?style=for-the-badge&logo=react&logoColor=%2361DAFB)
+![React Router](https://img.shields.io/badge/React_Router-CA4245?style=for-the-badge&logo=react-router&logoColor=white)
+![SASS](https://img.shields.io/badge/SASS-hotpink.svg?style=for-the-badge&logo=SASS&logoColor=white)
+![MySQL](https://img.shields.io/badge/mysql-%2300f.svg?style=for-the-badge&logo=mysql&logoColor=white)
 
-## Available Scripts
+## Was ist der Raumplan
 
-In the project directory, you can run:
+Den Raumplan habe ich zusammen mit David Beyer in meinem zweiwöchigen Praktikum bei Seibert Media entwickelt. Er ist dazu gedacht, dass Mitarbeiter bei Seibert Media einen Überblick über die Büroflächen und Tische bekommen. Man kann so einfach Personen finden oder schauen, wer an einem Tisch sitzt.
 
-### `npm start`
+## Was ist anders in der 2.0 version?
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+Der neue Tischplan ist in React geschrieben und hat im Vergleich zum alten Tischplan deutlich bessere Funktionen. Die Suchfunktion kann mehr dinge finden,
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## Wie funktioniert das Tisch verschieben?
 
-### `npm test`
+Jeder Tisch ist child von einem einem `react-draggable`, welches ursprünglich links oben bei (0|0) ist. Wenn der Tisch nun verschoben wird, wird immer, wenn das react-draggable losgelassen wird die x und y Koordinaten auf den Tisch übertragen, damit dieser an der Richtigen stelle ist. Wenn der Tisch gespeichert wird, wird die Relative Verschiebung mit der normalen Position verrechnet und gespeichert.
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## Besonderheit: resource friendly
 
-### `npm run build`
+Ich habe den Tischplan so geschrieben, dass nur die Ressourcen geholt werden, die wirklich benötigt werden. So werden beim initial page load nur die Daten der Aktuellen Location (Tischgröße), die Räume, Teams, Tische und das Grundriss-Bild von der aktuellen Location geladen. Die Benutzer werden erst geladen, wenn man mit der Maus über einen Tisch hovered und gespeichert um später wieder verwendet werden zu können.
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+## Backend
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+Das Backend für den Raumplan ist [hier](https://github.com/NilsGke/raumplan2Server). Es basiert auf einem Node server und eine SQL-Datenbank, die alle Tische, Locations, Teams usw... hält.
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+## Was kann verbessert werden?
 
-### `npm run eject`
+### Asynchronous Team-Fetching
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
-
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+Die Teams könnten noch asynchronous geholt werden und vorher ein placeholder angezeigt werden, da, wenn die Internetverbindung langsam ist, die Teams, das UI aufhalten könnten. Hierfür müsste man eigentlich den Code von den Usern kopieren und vielleicht bisschen die fundamentale Struktur, wie die Teams funktionieren ändern. Für die Zukunft könnte ich mir vielleicht einen Team Component vorstellen.
