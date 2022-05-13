@@ -633,13 +633,3 @@ const Router = () => {
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(<Router />);
-
-/* FIXME: a lot of requests are getting sent when fetching a lot of users and it takes some time. maybe have some kind of storage that knows which user(s) are getting fetched rn
- * FIXME: when moving a table, not closing tooltip then editing table and instandly clicking on save, the table moves back to its original place. Why tf does it do that? idk. The crazy thig is that if you close the popup it doesnt do it, so i assume the table pos is somehow saved in the popup? (might be fixed when fixing the error below (table skipping around when moving multiple times))
- * FIXME: when deleting a user it openes the search
- * TODO: remove possible sql vonurabilities shown here: https://stackoverflow.com/questions/67244680/multiple-sql-queries-in-node-js
- * TODO: fix all the z index table things (maybe make some kind of visual on how they are stacked)
- * IDEA: have some kind of user profile popup where the app takes screenshots of the tables he is sitting at and displays them#
- * IDEA: add eamils to field thingy? maybe add google message link? (guess thats not possible)
- * HELP: how do i fix the buttons on mobile view
- */
