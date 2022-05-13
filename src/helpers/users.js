@@ -4,13 +4,13 @@ const users = [];
  * @param {number} userId user id
  * @returns user object
  */
-export const getUser = (userId) => users.find((u) => u.id === userId);
+export const getUserData = (userId) => users.find((u) => u.id === userId);
 
 /** fetch user and add to user storage
  * @param {string} userId user id
  * @returns promise which fullfills into the user object
  */
-export function fetchUser(userId) {
+export function fetchUserData(userId) {
   return new Promise((resolve, reject) =>
     fetch(process.env.REACT_APP_BACKEND + "users/" + userId)
       .then((res) => res.json())
@@ -21,9 +21,7 @@ export function fetchUser(userId) {
   );
 }
 
-export function addUsers(newUsers) {
-  const userIds = users.map((u) => u.id).slice();
-  newUsers.filter((u) => !userIds.includes(u.id)).forEach((u) => users.push(u));
-}
+export const addUsersToStorage = (newUsers) =>
+  newUsers.forEach((user) => users.push(user));
 
 export default users;
