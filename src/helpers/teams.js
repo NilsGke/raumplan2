@@ -1,31 +1,34 @@
-const fetchSync = require("sync-fetch");
-
 /**variable to hold all teams*/
 const teams = [];
 export default teams;
 
-/** get team by name (fetches team if its not in array yet)
+/** get team by name
  * @param {string} teamName team name
- * @returns team object
+ * @returns team object or undefined
  */
-export function getTeam(teamName) {
-  const team = teams.find((t) => t.name === teamName);
-  // if team is not found it fetches it
-  if (team === undefined) {
-    let team;
-    try {
-      team = fetchSync(
-        process.env.REACT_APP_BACKEND + "teams/" + teamName
-      ).json()[0];
-    } catch (error) {
-      // if team does not exist in db then error and add fake team data
-      console.warn(
-        `Could not find team: ${teamName}\nConsider adding it to the database!`
-      );
-      team = { id: -1, name: teamName, color: "#1c1e26" };
-    } finally {
-      teams.push(team);
-    }
-  }
-  return teams.find((t) => t.name === teamName);
+export const getTeamData = (teamName) => teams.find((t) => t.name == teamName);
+
+/** fetches team
+ * @param {string} teamName team name
+ * @returns promise, which resolves into the team (or fake team if team cannot be found)
+ */
+export function fetchTeamData(teamName) {
+  return new Promise((resolve, reject) =>
+    fetch(process.env.REACT_APP_BACKEND + "teams/" + teamName)
+      .then((res) => res.json())
+      .then((data) => data[0])
+      .then((team) => {
+        teams.push(team);
+        resolve(team);
+      })
+      .catch((error) => {
+        // if team does not exist in db then error and add fake team data
+        console.warn(
+          `Could not find team: ${teamName}\nConsider adding it to the database!`
+        );
+        let team = { id: -1, name: teamName, color: "#1c1e26" };
+        teams.push(team);
+        resolve(team);
+      })
+  );
 }
