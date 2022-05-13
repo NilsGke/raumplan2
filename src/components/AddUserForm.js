@@ -3,8 +3,8 @@ import fetch from "sync-fetch";
 import { CONFIG } from "../index";
 import { AiOutlineClose } from "react-icons/ai";
 import User from "./User";
-import { addUsers } from "../helpers/users";
-import { getTeam } from "../helpers/teams";
+import { fetchUserData } from "../helpers/users";
+import { getTeamData } from "../helpers/teams";
 import "../styles/addUserForm.scss";
 
 export default function AddUserForm(props) {
@@ -26,11 +26,11 @@ export default function AddUserForm(props) {
         teams: user.Organisationseinheiten.split(",")
           .map((team) => team.replace(": Seibert Media (SM)", "").trim())
           .filter((s) => s.length > 0)
-          .map((teamName) => getTeam(teamName)),
+          .map((teamName) => getTeamData(teamName)),
       };
     });
     setUsers(newUsers);
-    addUsers(newUsers);
+    fetchUserData(newUsers);
   };
 
   let searchString = "";
