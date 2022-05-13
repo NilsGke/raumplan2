@@ -26,9 +26,3 @@ Ich habe den Tischplan so geschrieben, dass nur die Ressourcen geholt werden, di
 ## Backend
 
 Das Backend für den Raumplan ist [hier](https://github.com/NilsGke/raumplan2Server). Es basiert auf einem Node server und eine SQL-Datenbank, die alle Tische, Locations, Teams usw... hält.
-
-## Was kann verbessert werden?
-
-### Asynchronous Team-Fetching
-
-Die Teams könnten noch asynchronous geholt werden und vorher ein placeholder angezeigt werden, da, wenn die Internetverbindung langsam ist, die Teams, das UI aufhalten könnten. Hierfür müsste man eigentlich den Code von den Usern kopieren und vielleicht bisschen die fundamentale Struktur, wie die Teams funktionieren ändern. Für die Zukunft könnte ich mir vielleicht einen Team Component vorstellen.
