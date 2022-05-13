@@ -53,7 +53,8 @@ export default function User(props) {
       <h3>{user.Person}</h3>
       {props.deletable ? (
         <div
-          onClick={() => {
+          onClick={(e) => {
+            e.stopPropagation();
             props.deleteUser(user.id);
           }}
           className="removeUserContainer"
