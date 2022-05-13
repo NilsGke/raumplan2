@@ -26,7 +26,7 @@ export default function Table(props) {
       onMouseEnter={() => {
         if (props.popupOpen) return;
         props.tooltip(true);
-        props.changeTooltipData(props.data);
+        props.changeTooltipTable(props.data.id);
       }}
       onMouseLeave={() => {
         props.tooltip(false);
