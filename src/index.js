@@ -148,7 +148,7 @@ function App() {
         .catch((err) => console.error(err));
   }, [locationData, locationId]);
 
-  // fetch rooms
+  // fetch team locations
   useEffect(() => {
     if (locationData != null)
       fetch(process.env.REACT_APP_BACKEND + "teamlocations/" + locationId)
