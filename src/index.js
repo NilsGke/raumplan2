@@ -69,7 +69,7 @@ function App() {
   const [calender, setCalender] = useState({ visible: false, data: null });
 
   // tooltip
-  const [tooltipData, setTooltipData] = useState({ table: null, users: null });
+  const [tooltipTableId, setTooltipTableId] = useState(-1);
   const [tooltipVisible, setTooltipVisible] = useState(false);
   const [popupOpen, setPopupOpen] = useState(false);
 
@@ -494,13 +494,12 @@ function App() {
                 <Table
                   highlighted={highlightedTable === table.id}
                   active={
-                    table.id === tooltipData.table?.id &&
-                    (tooltipVisible || popupOpen)
+                    table.id === tooltipTableId && (tooltipVisible || popupOpen)
                   }
                   locationData={locationData}
                   data={table}
                   tooltip={(visible) => setTooltipVisible(visible)}
-                  changeTooltipData={(table) => setTooltipData({ table })}
+                  changeTooltipTable={(id) => setTooltipTableId(id)}
                   popup={() => setPopupOpen(true)}
                   popupOpen={popupOpen}
                   moving={movingTable && table.id === movingTableId}
@@ -532,7 +531,7 @@ function App() {
           setHoverTooltopPosition={(pos) => setHoverTooltopPosition(pos)}
         />
         <Tooltip
-          table={tooltipData.table}
+          table={tables?.find((t) => t.id === tooltipTableId)}
           visible={tooltipVisible}
           popup={popupOpen}
           openPopup={() => setPopupOpen(true)}
