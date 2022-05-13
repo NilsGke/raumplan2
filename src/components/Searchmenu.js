@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
-import User from "./Userid";
+import User from "./User";
 // icons
 import { BsDoorClosed } from "react-icons/bs";
 import { GiTable } from "react-icons/gi";
 import { GrGroup } from "react-icons/gr";
 // helpers
-import { addUsers } from "../helpers/users";
+import { addUsersToStorage } from "../helpers/users";
 // css
 import "../styles/searchMenu.scss";
 
@@ -70,7 +70,7 @@ export default function Searchmenu(props) {
         fetch(process.env.REACT_APP_BACKEND + "search/" + searchString.trim())
           .then((res) => res.json())
           .then((data) => setResults(data))
-          .then((data) => setLoading(false))
+          .then(() => setLoading(false))
           .catch((err) => {
             console.error(err);
             setLoading(false);
@@ -79,7 +79,7 @@ export default function Searchmenu(props) {
   }, [searchString]);
 
   useEffect(() => {
-    if (results.users.length > 0) addUsers(results.users);
+    if (results.users.length > 0) addUsersToStorage(results.users);
   }, [results, props]);
 
   useEffect(() => {
@@ -99,6 +99,44 @@ export default function Searchmenu(props) {
             value={searchString}
             onChange={(e) => {
               setSearchString(e.target.value);
+            }}
+            onKeyPress={(e) => {
+              if (e.key !== "Enter") return;
+
+              const item = [
+                ...results.teams.map((l) => ({ ...l, type: "team" })),
+                ...results.rooms.map((l) => ({ ...l, type: "room" })),
+                ...results.locations.map((l) => ({ ...l, type: "location" })),
+                ...results.users.map((l) => ({ ...l, type: "user" })),
+                ...results.tables.map((l) => ({ ...l, type: "table" })),
+              ][0];
+
+              if (item === undefined) return;
+
+              switch (item.type) {
+                case "team":
+                  setSearchString(item.name);
+                  break;
+                case "room":
+                  props.changeLocation(item.location);
+                  props.highlightRoom(item.name);
+                  break;
+                case "location":
+                  props.changeLocation(item.id);
+                  break;
+                case "user":
+                  setSearchString("user: " + item.Person);
+                  break;
+                case "table":
+                  props.changeLocation(item.location);
+                  props.highlightTable(item.id);
+                  break;
+                default:
+                  console.warn(
+                    `searched for: "${searchString}" but could not handle enter key click`
+                  );
+                  break;
+              }
             }}
           />
           <div id="clearInput" onClick={() => setSearchString("")}>
@@ -169,17 +207,18 @@ export default function Searchmenu(props) {
                   />
                 </div>
               )),
-              results.users.map((user, i) => (
-                <User
-                  key={"user" + user.id}
-                  id={user.id}
-                  getTeam={props.getTeam}
-                  clickable={true}
-                  clickHandler={() => {
-                    setSearchString("user: " + user.Person);
-                  }}
-                />
-              )),
+              results.users.map((user, i) => {
+                return (
+                  <User
+                    key={"user" + user.id}
+                    user={user}
+                    clickable={true}
+                    clickHandler={() => {
+                      setSearchString("user: " + user.Person);
+                    }}
+                  />
+                );
+              }),
               results.tables
                 .filter(
                   (table, i) =>
