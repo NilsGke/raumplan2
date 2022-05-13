@@ -9,7 +9,7 @@ export default function Room(props) {
         left: props.data.x,
         height: props.data.h,
         width: props.data.w,
-        background: props.data.color,
+        backgroundImage: `linear-gradient(to right, ${props.data.color}, ${props.data.color}),linear-gradient(to right, white, white)`,
         fontSize: props.data.fontSize,
         cursor: props.data.link !== "" ? "pointer" : "auto",
       }}

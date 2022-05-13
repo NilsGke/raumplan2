@@ -44,13 +44,6 @@
   }
   .teams {
     display: flex;
-    .team {
-      width: min-content;
-      padding: 2px;
-      border-radius: 5px;
-      white-space: nowrap;
-      padding: 0 5px;
-    }
   }
 
   &.blueprint {
