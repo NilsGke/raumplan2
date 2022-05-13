@@ -3,7 +3,7 @@ import fetch from "sync-fetch";
 import { CONFIG } from "../index";
 import { AiOutlineClose } from "react-icons/ai";
 import User from "./User";
-import { fetchUserData } from "../helpers/users";
+import { addUsersToStorage, fetchUserData } from "../helpers/users";
 import { getTeamData } from "../helpers/teams";
 import "../styles/addUserForm.scss";
 
@@ -30,7 +30,7 @@ export default function AddUserForm(props) {
       };
     });
     setUsers(newUsers);
-    fetchUserData(newUsers);
+    addUsersToStorage(newUsers);
   };
 
   let searchString = "";
