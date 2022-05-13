@@ -9,7 +9,7 @@
   user-select: none; /* Non-prefixed version, currently supported by Chrome, Opera and Firefox */
 }
 
-#app > .react-draggable {
+#app > .react-draggable.tableDraggable {
   z-index: 2;
   &:not(.react-draggable-dragging) {
     transition: all index.$transDur ease-in-out;
