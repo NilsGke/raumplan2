@@ -1,5 +1,5 @@
 import React from "react";
-import { getTeam } from "../helpers/teams";
+import Team from "./Team";
 import "../styles/user.scss";
 // icons
 import { BsTrashFill } from "react-icons/bs";
@@ -8,8 +8,9 @@ export default function User(props) {
   const teams = props.blueprint
     ? []
     : props.user.Organisationseinheiten.split(",").map((t) =>
-        getTeam(t.replace(": Seibert Media (SM)", "").trim())
+        t.replace(": Seibert Media (SM)", "").trim()
       );
+
   if (props.blueprint)
     return (
       <div className="user">
@@ -25,15 +26,7 @@ export default function User(props) {
             gridTemplateColumns: teams.length > 2 ? "auto auto" : "auto",
           }}
         >
-          <div
-            className="team"
-            style={{
-              background: "grey",
-              color: "white",
-            }}
-          >
-            <span className="loadingText">team</span>
-          </div>
+          <Team placeholder />
         </div>
       </div>
     );
@@ -68,23 +61,9 @@ export default function User(props) {
           gridTemplateColumns: teams.length > 2 ? "auto auto" : "auto",
         }}
       >
-        {teams.map((team, i) => {
-          return (
-            <div
-              key={i}
-              className="team"
-              style={{
-                background: team.color,
-                color:
-                  parseInt(team.color.replace("#", ""), 16) > 0xffffff / 1.1
-                    ? "black"
-                    : "white",
-              }}
-            >
-              {team.name}
-            </div>
-          );
-        })}
+        {teams.map((teamName, i) => (
+          <Team key={i} name={teamName} />
+        ))}
       </div>
     </div>
   );

@@ -1,24 +1,24 @@
 import React, { useState, useEffect } from "react";
 import "../styles/user.scss";
-import { getUser, fetchUser } from "../helpers/users";
-import { getTeam } from "../helpers/teams";
+import Team from "./Team";
+import { getUserData, fetchUserData } from "../helpers/users";
 // icons
 import { BsTrashFill } from "react-icons/bs";
 
 export default function User(props) {
-  const [user, setUser] = useState(getUser(props.id));
+  const [user, setUser] = useState(getUserData(props.id));
   const [gotUserData, setGotUserData] = useState(user !== undefined);
 
   useEffect(() => {
     if (user?.Person === undefined)
-      fetchUser(props.id)
+      fetchUserData(props.id)
         .then((user) => setUser(user))
         .then(() => setGotUserData(true));
   }, [props.id, user?.Person]);
 
   const teams = gotUserData
     ? user.Organisationseinheiten.split(",").map((t) =>
-        getTeam(t.replace(": Seibert Media (SM)", "").trim())
+        t.replace(": Seibert Media (SM)", "").trim()
       ) || []
     : [];
 
@@ -72,22 +72,8 @@ export default function User(props) {
           gridTemplateColumns: teams.length > 2 ? "auto auto" : "auto",
         }}
       >
-        {teams.map((team, i) => {
-          return (
-            <div
-              key={i}
-              className="team"
-              style={{
-                background: team.color,
-                color:
-                  parseInt(team.color.replace("#", ""), 16) > 0xffffff / 1.1
-                    ? "black"
-                    : "white",
-              }}
-            >
-              {team.name}
-            </div>
-          );
+        {teams.map((teamName, i) => {
+          return <Team key={i + teamName} name={teamName} />;
         })}
       </div>
     </div>
