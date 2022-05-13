@@ -1,3 +1,10 @@
+$bg: #333333;
+$bg_light: #3f3f3f;
+$bg_lighter: #3f3f3f;
+$grey: #6b6b6b;
+$bg_dark: #222222;
+$bg_darker: #222222;
+
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Oxygen", "Ubuntu",
@@ -20,14 +27,20 @@ body,
   width: 100%;
 }
 
-#map {
-  position: absolute;
-  z-index: -1;
+#app.dark {
+  background: $bg;
+  #map {
+    filter: invert(1) contrast(0.6) hue-rotate(197deg);
+  }
 }
 
 #app {
   background-repeat: no-repeat;
   z-index: -1;
+  #map {
+    position: absolute;
+    z-index: 0;
+  }
 }
 
 // .__react_component_tooltip {
@@ -81,11 +94,11 @@ body,
   align-items: center;
   justify-content: center;
   .errorMessage {
-    background-color: #3a3a3a;
+    background-color: $bg;
     color: white;
     padding: 30px;
     border-radius: 20px;
-    box-shadow: -10px 10px 20px 0px #727272;
+    box-shadow: -10px 10px 20px 0px $grey;
     // width: min-content;
     * {
     }
@@ -95,26 +108,12 @@ body,
     }
     code {
       padding: 10px;
-      background-color: #313131;
+      background-color: $bg_light;
       border-radius: 5px;
       box-shadow: inset;
     }
     h4 {
-      color: #6b6b6b;
-    }
-    button {
-      color: white;
-      background-color: #525252;
-      border: 3px solid #424242;
-      border: none;
-      padding: 10px;
-      font-size: 20px;
-      border-radius: 10px;
-      cursor: pointer;
-      transition: all $transDur ease-in-out;
-      &:hover {
-        background-color: #4e4e4e;
-      }
+      color: $grey;
     }
   }
 }

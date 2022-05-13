@@ -19,6 +19,7 @@ const fetchSync = require("sync-fetch");
 export const CONFIG = {
   reload: 0, // refresh time in seconds
   minSearchLengh: 0,
+  darkmode: false,
 };
 
 function importImages(r) {
@@ -433,7 +434,6 @@ function App() {
         .then(() => {
           setMovingTableNewPos();
         })
-        .then(() => setReloadTables(true))
         .then(resolve);
     });
   }
@@ -451,8 +451,8 @@ function App() {
         place={hoverTooltopPosition}
         offset={{ [hoverTooltopPosition]: 5 }}
       />
-      <img src={images[locationData?.img] || ""} alt={"map"} id="map" />
-      <div id="app">
+      <div id="app" className={CONFIG.darkmode ? "dark" : "light"}>
+        <img src={images[locationData?.img] || ""} alt={"map"} id="map" />
         {teamlocations?.map((location, i) => (
           <Teamlocation
             key={i}
@@ -568,6 +568,7 @@ function App() {
             setMovingTableId(-1);
             setMovingTableNewPos({ x: 0, y: 0, r: 0 });
             setMovingTableOldPos({ x: 0, y: 0, r: 0 });
+            setReloadTables(true);
           }}
           resetMovingTable={() => resetMovingTable()}
           ref={tooltipRef}
@@ -589,10 +590,11 @@ const Router = () => {
   const counter = useRef(10);
   const [refreshTimer, setRefreshTimer] = useState(counter.current);
   const [error, setError] = useState(false);
+
   useEffect(() => {
     if (error === false)
       try {
-        console.log(fetchSync(process.env.REACT_APP_BACKEND + "ping"));
+        fetchSync(process.env.REACT_APP_BACKEND + "ping");
       } catch (err) {
         setError(err);
         console.error(error);
@@ -601,7 +603,8 @@ const Router = () => {
           setRefreshTimer(counter.current);
         }, 1000);
       }
-  });
+  }, [error]);
+
   useEffect(() => {
     if (refreshTimer <= 0) window.location.reload();
   }, [refreshTimer]);
