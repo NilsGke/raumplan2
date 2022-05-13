@@ -16,7 +16,7 @@ import { IoMdAdd } from "react-icons/io";
 import { MODIFIER_PREFIX } from "../";
 
 export default function FloatingButtons(props) {
-  const isTabletOrMobile = useMediaQuery({ query: "(max-width: 1224px)" });
+  const isTabletOrMobile = useMediaQuery({ query: "(max-width: 1000px)" });
 
   const [toggledOpen, setToggledOpen] = useState(false);
   if (props.forceOpen) setToggledOpen(true);
