@@ -73,3 +73,48 @@ body,
     }
   }
 }
+
+#error {
+  height: 100%;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  .errorMessage {
+    background-color: #3a3a3a;
+    color: white;
+    padding: 30px;
+    border-radius: 20px;
+    box-shadow: -10px 10px 20px 0px #727272;
+    // width: min-content;
+    * {
+    }
+    h1 {
+      color: #ff6161;
+      white-space: nowrap;
+    }
+    code {
+      padding: 10px;
+      background-color: #313131;
+      border-radius: 5px;
+      box-shadow: inset;
+    }
+    h4 {
+      color: #6b6b6b;
+    }
+    button {
+      color: white;
+      background-color: #525252;
+      border: 3px solid #424242;
+      border: none;
+      padding: 10px;
+      font-size: 20px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all $transDur ease-in-out;
+      &:hover {
+        background-color: #4e4e4e;
+      }
+    }
+  }
+}

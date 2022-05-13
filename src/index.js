@@ -13,6 +13,8 @@ import Room from "./components/Room";
 import "./styles/index.scss";
 import FloatingButtons from "./components/FloatingButtons";
 import FeedbackApp from "./pages/feedback";
+// helpers
+const fetchSync = require("sync-fetch");
 
 export const CONFIG = {
   reload: 0, // refresh time in seconds
@@ -42,26 +44,35 @@ if (stored === undefined)
 const loactionInUrl = parseInt(window.location.hash.replace("#", ""));
 
 function App() {
+  // location stuff
   const [locationId, setLocationId] = useState(
     loactionInUrl || stored?.location || 3
   );
   const [locationData, setLocationData] = useState(null);
 
+  // tables
   const [tables, setTables] = useState(null);
   const [reloadTables, setReloadTables] = useState(true);
 
+  // search function
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchOverwrite, setSearchOverwrite] = useState(false);
+  // loaction menu
+  const [locationDropDownOpen, setLocationDropDownOpen] = useState(false);
 
+  // teams and rooms on the map
   const [teamlocations, setTeamlocations] = useState(null);
   const [rooms, setRooms] = useState(null);
 
+  // calender popup
   const [calender, setCalender] = useState({ visible: false, data: null });
 
+  // tooltip
   const [tooltipData, setTooltipData] = useState({ table: null, users: null });
   const [tooltipVisible, setTooltipVisible] = useState(false);
   const [popupOpen, setPopupOpen] = useState(false);
-  const [locationDropDownOpen, setLocationDropDownOpen] = useState(false);
+
+  // move a table
   const [movingTable, setMovingTable] = useState(false);
   const [movingTableId, setMovingTableId] = useState(-1);
   const [movingTableNewPos, setMovingTableNewPos] = useState({
@@ -75,7 +86,9 @@ function App() {
     r: 0,
   });
 
+  // mini-tooltip (ex on floating buttons)
   const [hoverTooltopPosition, setHoverTooltopPosition] = useState("left");
+
   // highlighters
   const [highlightedRoom, setHighlightedRoom] = useState(null);
   const [highlightedTable, setHighlightedTable] = useState(null);
@@ -477,7 +490,7 @@ function App() {
                 });
               }}
             >
-              <div>
+              <div className="tableDraggable">
                 <Table
                   highlighted={highlightedTable === table.id}
                   active={
@@ -572,7 +585,39 @@ function App() {
   );
 }
 
-function Router() {
+const Router = () => {
+  const counter = useRef(10);
+  const [refreshTimer, setRefreshTimer] = useState(counter.current);
+  const [error, setError] = useState(false);
+  useEffect(() => {
+    if (error === false)
+      try {
+        console.log(fetchSync(process.env.REACT_APP_BACKEND + "ping"));
+      } catch (err) {
+        setError(err);
+        console.error(error);
+        setInterval(() => {
+          counter.current -= 1;
+          setRefreshTimer(counter.current);
+        }, 1000);
+      }
+  });
+  useEffect(() => {
+    if (refreshTimer <= 0) window.location.reload();
+  }, [refreshTimer]);
+
+  if (error !== false)
+    return (
+      <div id="error">
+        <div className="errorMessage">
+          <h1>No connection to backend</h1>
+          <code id="error">{error.toString()}</code>
+          <h4>Bitte den Admin kontaktieren!</h4>
+          <h5>erneut versuchen: {counter.current}</h5>
+        </div>
+      </div>
+    );
+
   return (
     <BrowserRouter>
       <Routes>
@@ -581,7 +626,7 @@ function Router() {
       </Routes>
     </BrowserRouter>
   );
-}
+};
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(<Router />);
