@@ -1,13 +1,17 @@
 @use "index";
 
-#feedbackPage {
+#feedbackPre {
   height: 100%;
   width: 100%;
   background: index.$bg;
   color: white;
-  #feedbackContainer {
+  #feedbackPreContainer {
     height: 80%;
     width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: row;
     a {
       width: 50%;
       margin: 10%;

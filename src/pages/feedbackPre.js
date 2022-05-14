@@ -11,8 +11,8 @@ export default function FeedbackPre() {
   }, []);
 
   return (
-    <div id="feedbackPage">
-      <div id="feedbackContainer">
+    <div id="feedbackPre">
+      <div id="feedbackPreContainer">
         <a href="https://github.com/NilsGke/raumplan2" target="_blank">
           <div id="bug">
             <h1>Github</h1>
