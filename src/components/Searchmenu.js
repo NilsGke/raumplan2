@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import User from "./User";
 // icons
+import { IconContext } from "react-icons";
 import { BsDoorClosed } from "react-icons/bs";
 import { GiTable } from "react-icons/gi";
-import { GrGroup } from "react-icons/gr";
+import { HiUserGroup } from "react-icons/hi";
 // helpers
 import { addUsersToStorage } from "../helpers/users";
 // css
@@ -156,23 +157,28 @@ export default function Searchmenu(props) {
             <div className="noResults">nichts gefunden 😥</div>
           ) : (
             [
-              results.teams.map((team, i) => (
-                <div
-                  key={"team" + team.id}
-                  className="team"
-                  onClick={() => setSearchString(team.name)}
-                  style={{
-                    background: team.color,
-                    color:
-                      parseInt(team.color.replace("#", ""), 16) > 0xffffff / 1.1
-                        ? "black"
-                        : "white",
-                  }}
-                >
-                  {team.name}
-                  <GrGroup />
-                </div>
-              )),
+              results.teams.map((team, i) => {
+                const color =
+                  parseInt(team.color.replace("#", ""), 16) > 0xffffff / 1.1
+                    ? "black"
+                    : "white";
+                return (
+                  <div
+                    key={"team" + team.id}
+                    className="team"
+                    onClick={() => setSearchString(team.name)}
+                    style={{
+                      background: team.color,
+                      color,
+                    }}
+                  >
+                    {team.name}
+                    <IconContext.Provider value={{ color }}>
+                      <HiUserGroup />
+                    </IconContext.Provider>
+                  </div>
+                );
+              }),
 
               results.rooms
                 .filter((r) => r.name.length > 0)
