@@ -1,5 +1,5 @@
 import "../styles/feedbackPre.scss";
-import { BrowserRouter, Route, Routes, Link } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 import { useEffect } from "react";
 import github from "../img/github.svg";
@@ -13,7 +13,7 @@ export default function FeedbackPre() {
   return (
     <div id="feedbackPage">
       <div id="feedbackContainer">
-        <a href="https://github.com/NilsGke/raumplan2" target={"_blank"}>
+        <a href="https://github.com/NilsGke/raumplan2" target="_blank">
           <div id="bug">
             <h1>Github</h1>
             <h2>Bugs, Feature requests, Ideen...</h2>
