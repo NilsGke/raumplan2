@@ -20,5 +20,3 @@ export default function Calender(props) {
     </>
   );
 }
-
-// TODO: add titles to all location parts (some rooms have multiple parts bc they are not rectangular, so the title must be on all of them) Maybe have an attribute if the part should have the text on display
