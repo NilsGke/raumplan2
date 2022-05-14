@@ -21,6 +21,7 @@ Der neue Tischplan ist in React geschrieben und hat im Vergleich zum alten Tisch
 ```
 git clone https://github.com/NilsGke/raumplan2.git
 cd raumplan2
+npm install
 npm start
 ```
 **Der [Server](https://github.com/NilsGke/raumplan2server) wird zusätzlich benötigt!**
