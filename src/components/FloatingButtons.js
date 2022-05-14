@@ -95,7 +95,7 @@ export default function FloatingButtons(props) {
               className="floatingButton"
               onClick={(e) => props.setReloadTables(true)}
             >
-              <Link to="/feedback">
+              <Link to="/feedbackPre">
                 <MdOutlineFeedback />
               </Link>
             </button>

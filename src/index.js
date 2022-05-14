@@ -13,6 +13,7 @@ import Room from "./components/Room";
 import "./styles/index.scss";
 import FloatingButtons from "./components/FloatingButtons";
 import FeedbackApp from "./pages/feedback";
+import FeedbackPre from "./pages/feedbackPre";
 // helpers
 const fetchSync = require("sync-fetch");
 
@@ -624,6 +625,7 @@ const Router = () => {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<App />} exact />
+        <Route path="/feedbackPre" element={<FeedbackPre />} />
         <Route path="/feedback" element={<FeedbackApp />} />
       </Routes>
     </BrowserRouter>
