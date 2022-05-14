@@ -3,7 +3,7 @@ import User from "./User";
 // icons
 import { BsDoorClosed } from "react-icons/bs";
 import { GiTable } from "react-icons/gi";
-import { GrGroup } from "react-icons/gr";
+import { GrGroup, GrLogout } from "react-icons/gr";
 // helpers
 import { addUsersToStorage } from "../helpers/users";
 // css
@@ -188,6 +188,14 @@ export default function Searchmenu(props) {
                     <div style={{ background: room.color }}>
                       {room.name}
                       <BsDoorClosed />
+                      {/* // icon when room is in different loaction */}
+                      {room.location !== props.currentLocation ? (
+                        <div className="diffLocation" title="anderer Standort">
+                          <GrLogout />
+                        </div>
+                      ) : (
+                        ""
+                      )}
                     </div>
                   </div>
                 )),
