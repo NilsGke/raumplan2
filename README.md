@@ -16,6 +16,15 @@ Den Raumplan habe ich zusammen mit David Beyer in meinem zweiwöchigen Praktikum
 
 Der neue Tischplan ist in React geschrieben und hat im Vergleich zum alten Tischplan deutlich bessere Funktionen. Die Suchfunktion kann mehr dinge finden,
 
+## Local setup
+
+```
+git clone https://github.com/NilsGke/raumplan2.git
+cd raumplan2
+npm start
+```
+**Der [Server](https://github.com/NilsGke/raumplan2server) wird zusätzlich benötigt!**
+
 ## Wie funktioniert das Tisch verschieben?
 
 Jeder Tisch ist child von einem einem `react-draggable`, welches ursprünglich links oben bei (0|0) ist. Wenn der Tisch nun verschoben wird, wird immer, wenn das react-draggable losgelassen wird die x und y Koordinaten auf den Tisch übertragen, damit dieser an der Richtigen stelle ist. Wenn der Tisch gespeichert wird, wird die Relative Verschiebung mit der normalen Position verrechnet und gespeichert.
