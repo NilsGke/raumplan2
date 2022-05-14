@@ -16,7 +16,7 @@ Den Raumplan habe ich zusammen mit David Beyer in meinem zweiwöchigen Praktikum
 
 Der neue Tischplan ist in React geschrieben und hat im Vergleich zum alten Tischplan deutlich bessere Funktionen. Die Suchfunktion kann mehr dinge finden,
 
-## Local setup
+## Local setup (pwsh)
 
 ```
 git clone https://github.com/NilsGke/raumplan2.git
