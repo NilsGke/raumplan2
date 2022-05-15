@@ -12,8 +12,10 @@ import Teamlocation from "./components/Teamlocation";
 import Room from "./components/Room";
 import "./styles/index.scss";
 import FloatingButtons from "./components/FloatingButtons";
+import Userpopup from "./components/Userpopup";
 import FeedbackApp from "./pages/feedback";
 // helpers
+import { getLocationData, fetchLocationData } from "./helpers/locations";
 const fetchSync = require("sync-fetch");
 
 export const CONFIG = {
@@ -29,9 +31,6 @@ function importImages(r) {
   });
   return images;
 }
-
-/**variable to hold locations*/
-let locations = [];
 
 let interval = null;
 
@@ -95,6 +94,10 @@ function App() {
   const [highlightedTable, setHighlightedTable] = useState(null);
   const [highlightTimers, setHighlightTimers] = useState(0);
 
+  // userpopup
+  const [userPopupOpen, setUserPopupOpen] = useState(false);
+  const [userPopupUserId, setUserPopupUserId] = useState(null);
+
   /**holds images of the building*/
   const images = importImages(
     require.context("./img", false, /\.(png|jpe?g|svg)$/)
@@ -113,15 +116,11 @@ function App() {
 
   // location change
   useEffect(() => {
-    const find = locations.find((l) => l.id === locationId);
+    const find = getLocationData(locationId);
     if (find === undefined) {
-      fetch(process.env.REACT_APP_BACKEND + "locations/" + locationId)
-        .then((res) => res.json())
-        .then((data) => {
-          locations.push(data[0]);
-          setLocationData(data[0]);
-        })
-        .catch((err) => console.error(err));
+      fetchLocationData(locationId).then((location) =>
+        setLocationData(location)
+      );
     } else {
       setLocationData(find);
     }
@@ -574,11 +573,21 @@ function App() {
           setHoverTooltopPosition={(pos) => setHoverTooltopPosition(pos)}
           openSearch={(name) => openSearch(name)}
           newRotation={movingTableNewPos.r}
+          openUserPopup={(userId) => {
+            setUserPopupOpen(true);
+            setUserPopupUserId(userId);
+          }}
         />
         <Calender
           data={calender.data}
           visible={calender.visible}
           close={() => setCalender({ ...calender, visible: false })}
+        />
+        <Userpopup
+          userId={userPopupUserId}
+          open={userPopupOpen}
+          closePopup={() => setUserPopupOpen(false)}
+          images={images}
         />
       </div>
     </>
