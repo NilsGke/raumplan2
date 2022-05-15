@@ -183,6 +183,7 @@ const Tooltip = forwardRef((props, ref) => {
                   clickHandler={({ Person }) => {
                     props.openSearch("user: " + Person);
                   }}
+                  openUserPopup={(id) => props.openUserPopup(id)}
                 />
               </div>
             )) || <span className="noData">keine Personen</span>}
