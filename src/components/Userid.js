@@ -4,6 +4,7 @@ import Team from "./Team";
 import { getUserData, fetchUserData } from "../helpers/users";
 // icons
 import { BsTrashFill } from "react-icons/bs";
+import { AiOutlineUser } from "react-icons/ai";
 
 export default function User(props) {
   const [user, setUser] = useState(getUserData(props.id));
@@ -66,6 +67,16 @@ export default function User(props) {
       ) : (
         ""
       )}
+      <div
+        onClick={() => {
+          props.openUserPopup(props.id);
+        }}
+        className="userPopupButtonContainer"
+      >
+        <button className="removeUser">
+          <AiOutlineUser />
+        </button>
+      </div>
       <h4>{user.Anmeldename.toLowerCase()}</h4>
       <div
         className="teams"
