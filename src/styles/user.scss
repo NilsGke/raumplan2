@@ -16,7 +16,8 @@
     margin: 2px 0;
     z-index: 3;
   }
-  .removeUserContainer {
+  .removeUserContainer,
+  .userPopupButtonContainer {
     position: absolute;
     top: 15px;
     right: -10px;
@@ -37,6 +38,19 @@
       color: #ff4747;
       cursor: pointer;
       z-index: 2;
+    }
+  }
+  .userPopupButtonContainer {
+    top: unset;
+    right: 5px;
+    bottom: 5px;
+    button {
+      height: 25px;
+      width: 25px;
+      font-size: 30px;
+      color: white;
+      border-radius: 100px;
+      background-color: index.$bg_light;
     }
   }
   h4 {
