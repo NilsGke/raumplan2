@@ -1,0 +1,74 @@
+@use "index";
+
+.userpopup {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: -1;
+  opacity: 0;
+  transition: all index.$transDur ease-in-out;
+  color: white;
+  .userpopup-content {
+    background-color: index.$bg_dark;
+    padding: 40px;
+    border-radius: 30px;
+    .userpopup-header {
+      position: relative;
+      h3 {
+        padding-right: 30px;
+        margin: 0;
+      }
+
+      .userpopup-close-button {
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 30px;
+        height: 30px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 0;
+        background-color: #323336;
+        border: none;
+        color: white;
+        border-radius: 100px;
+        cursor: pointer;
+      }
+    }
+    .userpopup-body {
+      .tableImageContainer {
+        position: relative;
+        overflow: hidden;
+        img {
+        }
+        .table {
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          line-height: 1;
+          background-color: #cfdcff;
+          border-radius: 3px;
+          border: 1px solid #253460;
+          z-index: 1;
+          color: black;
+          cursor: pointer;
+          transition: background-color index.$transDur ease-in-out;
+        }
+      }
+    }
+  }
+  &.open {
+    z-index: 9999;
+    opacity: 1;
+  }
+}
