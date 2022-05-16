@@ -1,4 +1,10 @@
-import React, { useState } from "react";
+import React, {
+  createRef,
+  forwardRef,
+  useEffect,
+  useImperativeHandle,
+  useState,
+} from "react";
 import fetch from "sync-fetch";
 import { CONFIG } from "../index";
 import { AiOutlineClose } from "react-icons/ai";
@@ -7,8 +13,9 @@ import { addUsersToStorage, fetchUserData } from "../helpers/users";
 import { getTeamData } from "../helpers/teams";
 import "../styles/addUserForm.scss";
 
-export default function AddUserForm(props) {
+const AddUserForm = forwardRef((props, ref) => {
   const [users, setUsers] = useState([]);
+  const [open, setOpen] = useState(false);
 
   const updateUsers = (name) => {
     searchString = name;
@@ -33,6 +40,20 @@ export default function AddUserForm(props) {
     addUsersToStorage(newUsers);
   };
 
+  useImperativeHandle(ref, () => ({
+    open,
+    setOpen(bool) {
+      setOpen(bool);
+    },
+  }));
+
+  const inputRef = createRef();
+  useEffect(() => {
+    if (open) {
+      inputRef.current.focus();
+    }
+  }, [open]);
+
   let searchString = "";
 
   let noData = "";
@@ -47,11 +68,8 @@ export default function AddUserForm(props) {
 
   return (
     <>
-      <div
-        id="addUserFormBackground"
-        className={props.open ? "open" : ""}
-      ></div>
-      <div id="addUserForm" className={props.open ? "open" : ""}>
+      <div id="addUserFormBackground" className={open ? "open" : ""}></div>
+      <div id="addUserForm" className={open ? "open" : ""}>
         <form
           action=""
           onSubmit={(e) => {
@@ -61,8 +79,9 @@ export default function AddUserForm(props) {
           <div id="header">
             <input
               type="text"
-              name="userNameInput"
               id="userNameInput"
+              ref={inputRef}
+              name="userNameInput"
               autoComplete="off"
               placeholder="Name..."
               onChange={(e) => {
@@ -70,7 +89,7 @@ export default function AddUserForm(props) {
               }}
             />
             <div id="closeButtonContainer">
-              <button onClick={() => props.closePopup()}>
+              <button onClick={() => setOpen(false)}>
                 <AiOutlineClose />
               </button>
             </div>
@@ -97,4 +116,7 @@ export default function AddUserForm(props) {
       </div>
     </>
   );
-}
+});
+
+AddUserForm.displayName = "AddUserForm";
+export default AddUserForm;

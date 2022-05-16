@@ -204,8 +204,8 @@ function App() {
       } else if (e.key === "Escape") {
         // escape key
         if (calenderRef.current.isOpen) calenderRef.current.closeCalender();
-        else if (tooltipRef.current.addUserFormOpen)
-          tooltipRef.current.closeAddUserForm();
+        else if (tooltipRef.current.addUserFormRef.current.open)
+          tooltipRef.current.addUserFormRef.current.setOpen(false);
         else if (movingTable) resetMovingTable();
         else if (tooltipRef.current.isPopup)
           tooltipRef.current.setIsPopup(false);

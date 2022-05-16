@@ -1,8 +1,9 @@
-import React, {
+import {
   useState,
   useImperativeHandle,
   forwardRef,
   useEffect,
+  useRef,
 } from "react";
 import Draggable from "react-draggable";
 
@@ -20,11 +21,11 @@ import { GrPowerReset } from "react-icons/gr";
 
 const Tooltip = forwardRef((props, ref) => {
   const [visible, setVisibility] = useState(false);
-  const [addUserFormOpen, openUserForm] = useState(false);
 
   const [tableId, setTableId] = useState(-1);
   const [isPopup, setIsPopup] = useState(false);
-  const [resetPosition, setResetPosition] = useState(false);
+
+  const addUserFormRef = useRef();
 
   const table = props.tables?.find((t) => t.id === tableId);
 
@@ -38,17 +39,10 @@ const Tooltip = forwardRef((props, ref) => {
         },
       };
 
-  useEffect(() => {
-    if (resetPosition) setResetPosition(false);
-  }, [resetPosition]);
-
   useImperativeHandle(ref, () => ({
     visible: visible,
     setVisible(value) {
       if (!isPopup) setVisibility(value);
-    },
-    closeAddUserForm() {
-      openUserForm(false);
     },
     setTable(id) {
       if (!isPopup) setTableId(id);
@@ -56,9 +50,8 @@ const Tooltip = forwardRef((props, ref) => {
     isPopup,
     setIsPopup(bool) {
       setIsPopup(bool);
-      setResetPosition(true);
     },
-    addUserFormOpen: addUserFormOpen,
+    addUserFormRef,
     tableId: tableId,
   }));
 
@@ -219,7 +212,7 @@ const Tooltip = forwardRef((props, ref) => {
             <button
               id="add"
               className={props.currentlyMovingTable ? "hidden " : ""}
-              onClick={() => openUserForm(true)}
+              onClick={() => addUserFormRef.current.setOpen(true)}
               data-tip={"Person hinzufügen"}
             >
               <HiUserAdd />
@@ -271,14 +264,14 @@ const Tooltip = forwardRef((props, ref) => {
         </div>
       </Draggable>
       <AddUserForm
-        open={addUserFormOpen}
+        ref={addUserFormRef}
         addUser={(userId) => {
           props.addUserToTable(table.id, userId);
           table.user = table.user + ";" + userId;
         }}
         getTeam={(name) => props.getTeam(name)}
         closePopup={() => {
-          openUserForm(false);
+          addUserFormRef.current.setOpen(false);
           props.updateTables();
         }}
       />
