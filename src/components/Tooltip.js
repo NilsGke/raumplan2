@@ -18,16 +18,23 @@ import { AiOutlineClose } from "react-icons/ai";
 import { FaEdit } from "react-icons/fa";
 import { HiUserAdd } from "react-icons/hi";
 import { GrPowerReset } from "react-icons/gr";
+import {
+  addUserToTable,
+  changeTableNumber,
+  deleteTable,
+  getTableById,
+  removeUserFromTable,
+} from "../helpers/tables";
 
 const Tooltip = forwardRef((props, ref) => {
   const [visible, setVisibility] = useState(false);
-
   const [tableId, setTableId] = useState(-1);
+  const [table, setTable] = useState(getTableById(tableId));
   const [isPopup, setIsPopup] = useState(false);
 
   const addUserFormRef = useRef();
 
-  const table = props.tables?.find((t) => t.id === tableId);
+  useEffect(() => setTable(getTableById(tableId)), [tableId]);
 
   const defaultValue = table?.tableNumber;
   const isDraggable = isPopup
@@ -103,7 +110,7 @@ const Tooltip = forwardRef((props, ref) => {
               autoComplete="off"
               disabled={!isPopup}
               onBlur={(e) => {
-                props.changeTableNumber(table?.id, e.target.value);
+                changeTableNumber(table?.id, e.target.value, table.location);
                 e.preventDefault();
               }}
             />
@@ -112,7 +119,7 @@ const Tooltip = forwardRef((props, ref) => {
             id="editButtonContainer"
             className="noDragHere"
             data-tip={"Bearbeiten"}
-            onMouseOver={() => props.setHoverTooltopPosition("left")}
+            // onMouseOver={() => props.setHoverTooltopPosition("left")}
           >
             <button
               onClick={() => setIsPopup(true)}
@@ -188,14 +195,11 @@ const Tooltip = forwardRef((props, ref) => {
                 <User
                   id={userId}
                   deletable={true}
-                  deleteUser={() => {
-                    // remove user from table in database
-                    props.deleteUser(userId, table?.id);
-                    // remove user from this table element (might fix some time, so tables get reloaded) FIXME:
-                    const users = table.user.split(";");
-                    users.splice(users.indexOf(userId), 1);
-                    table.user = users.join(";");
-                  }}
+                  deleteUser={() =>
+                    removeUserFromTable(userId, tableId, table.location).then(
+                      () => setTable(getTableById(tableId))
+                    )
+                  }
                   clickable={true}
                   clickHandler={({ Person }) => {
                     props.openSearch("user: " + Person);
@@ -252,9 +256,8 @@ const Tooltip = forwardRef((props, ref) => {
               className={props.currentlyMovingTable ? "hidden " : ""}
               onClick={() => {
                 if (!window.confirm("Tisch wirklich löschen?")) return;
-                setIsPopup(false);
-                setVisibility(false);
-                props.removeTable(table?.id);
+                deleteTable(table.id);
+                props.closePopup();
               }}
               data-tip={"Löschen"}
             >
@@ -265,10 +268,11 @@ const Tooltip = forwardRef((props, ref) => {
       </Draggable>
       <AddUserForm
         ref={addUserFormRef}
-        addUser={(userId) => {
-          props.addUserToTable(table.id, userId);
-          table.user = table.user + ";" + userId;
-        }}
+        addUser={(userId) =>
+          addUserToTable(tableId, userId, table.location).then(() =>
+            setTable(getTableById(tableId))
+          )
+        }
         getTeam={(name) => props.getTeam(name)}
         closePopup={() => {
           addUserFormRef.current.setOpen(false);
@@ -280,5 +284,4 @@ const Tooltip = forwardRef((props, ref) => {
 });
 
 Tooltip.displayName = "Tooltip";
-
 export default Tooltip;
