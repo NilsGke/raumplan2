@@ -45,6 +45,10 @@ const FloatingButtons = forwardRef((props, ref) => {
     clearButtonBorders() {
       setActiveButton("");
     },
+    toggledOpen,
+    setToggledOpen(bool) {
+      setToggledOpen(bool);
+    },
   }));
 
   // rerender the buttons so outline changes
