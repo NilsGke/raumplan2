@@ -1,4 +1,4 @@
-let tables = [];
+let tableStorage = [];
 
 /**
  * refreshes Tables
@@ -6,16 +6,13 @@ let tables = [];
  * @returns {Promise<void>}
  */
 export function addOrRefreshTables(locationid) {
-  // return promise
-  tables = tables.filter((table) => table.locationId === locationid);
+  // filter out all tables that do not have location != locationid
+  const filteredTables = tableStorage.filter((t) => t.location !== locationid);
   return new Promise((resolve, reject) =>
     fetch(process.env.REACT_APP_BACKEND + "tables/" + locationid)
       .then((response) => response.json())
-      .then((data) => {
-        data.forEach((table) => {
-          tables.push(table);
-        });
-      })
+      .then((data) => data.forEach((table) => filteredTables.push(table)))
+      .then(() => (tableStorage = filteredTables))
       .then(resolve)
       .catch(reject)
   );
@@ -26,7 +23,7 @@ export function addOrRefreshTables(locationid) {
  * @returns {Array<Object>} tables
  */
 export function getTablesAtLocation(locationid) {
-  return tables.filter((table) => table.location === locationid);
+  return tableStorage.filter((table) => table.location === locationid);
 }
 
 /** gets the table with a specific id
@@ -34,7 +31,7 @@ export function getTablesAtLocation(locationid) {
  * @returns {Object} table
  */
 export function getTableById(tableId) {
-  return tables.find((table) => table.id === tableId);
+  return tableStorage.find((table) => table.id === tableId);
 }
 
 /** create new table
@@ -62,6 +59,71 @@ export function createNewTable(locationId) {
   );
 }
 
+/** function that changes the tables number (/name)
+ * @param {number} tableId tables id
+ * @param {string} newTableNumber table number (can also be letters, so its a string)
+ */
+export function changeTableNumber(tableId, newTableNumber, locationId) {
+  //   return promise
+  return new Promise((resolve, reject) =>
+    fetch(process.env.REACT_APP_BACKEND + "changeTableNumber", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        id: tableId,
+        tableNumber: newTableNumber,
+      }),
+    })
+      .then(() => addOrRefreshTables(locationId).then(resolve))
+      .catch(reject)
+  );
+}
+
+/** sends request to backend to add a user to a table
+ * @param {number} tableId table id
+ * @param {number} userId user id
+ * @param {number} locationId location id (tables will be reloaded)
+ * @returns {Promise<void>}
+ */
+export function addUserToTable(tableId, userId, locationId) {
+  return new Promise((resolve, reject) =>
+    fetch(process.env.REACT_APP_BACKEND + "addUserToTable", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({
+        userId: userId,
+        tableId: tableId,
+      }),
+    })
+      .then(() => addOrRefreshTables(locationId).then(resolve))
+      .catch(reject)
+  );
+}
+
+/** function that removes a user from a table in the db
+ * @param {number} userId users id
+ * @param {number} tableId tables id
+ * @returns {Promise<void>}
+ */
+export function removeUserFromTable(userId, tableId, locationId) {
+  return new Promise((resolve, reject) =>
+    fetch(process.env.REACT_APP_BACKEND + "removeUserFromTable", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({
+        userId,
+        tableId,
+      }),
+    })
+      .then(() => addOrRefreshTables(locationId).then(resolve))
+      .catch(reject)
+  );
+}
+
 /** sends a post request to delete a table from the db
  * @param {number} tableId table id
  * @returns {Promise<void>}
@@ -80,4 +142,5 @@ export function deleteTable(tableId) {
   );
 }
 
+const tables = () => tableStorage.slice();
 export default tables;
