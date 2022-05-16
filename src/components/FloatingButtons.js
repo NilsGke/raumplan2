@@ -20,6 +20,7 @@ import { MdOutlineFeedback } from "react-icons/md";
 import { IoMdAdd } from "react-icons/io";
 
 import { MODIFIER_PREFIX } from "../";
+import { createNewTable } from "../helpers/tables";
 
 const FloatingButtons = forwardRef((props, ref) => {
   const isTabletOrMobile = useMediaQuery({ query: "(max-width: 1000px)" });
@@ -111,7 +112,14 @@ const FloatingButtons = forwardRef((props, ref) => {
             id="addTableContainer"
             data-tip={`Tisch hinzufügen (${MODIFIER_PREFIX}+alt+n)`}
           >
-            <button className="floatingButton" onClick={() => props.addTable()}>
+            <button
+              className="floatingButton"
+              onClick={() =>
+                createNewTable(props.currentLocation).then(() =>
+                  props.setReloadTables(true)
+                )
+              }
+            >
               <IoMdAdd />
             </button>
           </div>
