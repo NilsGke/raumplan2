@@ -51,13 +51,6 @@ const FloatingButtons = forwardRef((props, ref) => {
     },
   }));
 
-  // rerender the buttons so outline changes
-  useEffect(() => {
-    if (!locationDropdownRef.current.isOpen && !searchmenuRef.current.isOpen)
-      setActiveButton("");
-  }, [locationDropdownRef.current?.isOpen, searchmenuRef.current?.isOpen]);
-  console.log(activeButton);
-
   return (
     <>
       <div
