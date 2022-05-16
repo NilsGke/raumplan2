@@ -1,4 +1,9 @@
-import React, { useState, useImperativeHandle, forwardRef } from "react";
+import React, {
+  useState,
+  useImperativeHandle,
+  forwardRef,
+  useEffect,
+} from "react";
 import Draggable from "react-draggable";
 
 import User from "./Userid";
@@ -12,19 +17,25 @@ import { AiOutlineClose } from "react-icons/ai";
 import { FaEdit } from "react-icons/fa";
 import { HiUserAdd } from "react-icons/hi";
 import { GrPowerReset } from "react-icons/gr";
+import { deleteTable, getTableById } from "../helpers/tables";
 
 const Tooltip = forwardRef((props, ref) => {
   const [visible, setVisibility] = useState(false);
   const [addUserFormOpen, openUserForm] = useState(false);
+  const [table, setTable] = useState(getTableById(props.tableId));
 
   const myRef = React.createRef();
 
-  const defaultValue = props.table?.tableNumber;
+  useEffect(() => {
+    setTable(getTableById(props.tableId));
+  }, [props.tableId]);
+
+  const defaultValue = table?.tableNumber;
   const isDraggable = !props.popup
     ? {
         position: {
-          x: props.table?.x + 80 || 0,
-          y: props.table?.y - 40 || 0,
+          x: table?.x + 80 || 0,
+          y: table?.y - 40 || 0,
         },
       }
     : [];
@@ -44,8 +55,7 @@ const Tooltip = forwardRef((props, ref) => {
       }
     : {};
 
-  const userIds =
-    props.table?.user.split(";").filter((s) => s.length > 0) || [];
+  const userIds = table?.user.split(";").filter((s) => s.length > 0) || [];
 
   return (
     <>
@@ -86,7 +96,7 @@ const Tooltip = forwardRef((props, ref) => {
               autoComplete="off"
               disabled={!props.popup}
               onBlur={(e) => {
-                props.changeTableNumber(props.table?.id, e.target.value);
+                props.changeTableNumber(table?.id, e.target.value);
                 e.preventDefault();
               }}
             />
@@ -115,14 +125,14 @@ const Tooltip = forwardRef((props, ref) => {
             </button>
           </div>
           <div
-            key={props.table?.r}
+            key={table?.r}
             id="inputs"
             className={
               "noDragHere " + (props.currentlyMovingTable ? "" : "hidden")
             }
           >
             <h3>Tisch drehen / verschieben</h3>
-            <h4>{props.newRotation || props.table?.r}°</h4>
+            <h4>{props.newRotation || table?.r}°</h4>
             <div id="rotateTableInput" className="noDragHere">
               <button
                 className="noDragHere"
@@ -136,7 +146,7 @@ const Tooltip = forwardRef((props, ref) => {
               <input
                 className="noDragHere"
                 type="range"
-                defaultValue={props.newRotation || props.table?.r}
+                defaultValue={props.newRotation || table?.r}
                 name="posRinput"
                 id="posR"
                 min={0}
@@ -173,11 +183,11 @@ const Tooltip = forwardRef((props, ref) => {
                   deletable={true}
                   deleteUser={() => {
                     // remove user from table in database
-                    props.deleteUser(userId, props.table?.id);
+                    props.deleteUser(userId, table?.id);
                     // remove user from this table element (might fix some time, so tables get reloaded) FIXME:
-                    const users = props.table.user.split(";");
+                    const users = table.user.split(";");
                     users.splice(users.indexOf(userId), 1);
-                    props.table.user = users.join(";");
+                    table.user = users.join(";");
                   }}
                   clickable={true}
                   clickHandler={({ Person }) => {
@@ -212,10 +222,10 @@ const Tooltip = forwardRef((props, ref) => {
               id="move"
               className={props.currentlyMovingTable ? "hidden " : ""}
               onClick={() =>
-                props.moveTable(props.table?.id, {
-                  x: props.table.x,
-                  y: props.table.y,
-                  r: props.table.r,
+                props.moveTable(table?.id, {
+                  x: table.x,
+                  y: table.y,
+                  r: table.r,
                 })
               }
               data-tip="verschieben / drehen"
@@ -233,7 +243,11 @@ const Tooltip = forwardRef((props, ref) => {
             <button
               id="delete"
               className={props.currentlyMovingTable ? "hidden " : ""}
-              onClick={() => props.removeTable(props.table?.id)}
+              onClick={() => {
+                if (!window.confirm("Tisch wirklich löschen?")) return;
+                deleteTable(table.id);
+                props.closePopup();
+              }}
               data-tip={"Löschen"}
             >
               <BsTrashFill />
@@ -244,8 +258,8 @@ const Tooltip = forwardRef((props, ref) => {
       <AddUserForm
         open={addUserFormOpen}
         addUser={(userId) => {
-          props.addUserToTable(props.table.id, userId);
-          props.table.user = props.table.user + ";" + userId;
+          props.addUserToTable(table.id, userId);
+          table.user = table.user + ";" + userId;
         }}
         getTeam={(name) => props.getTeam(name)}
         closePopup={() => {
@@ -257,4 +271,5 @@ const Tooltip = forwardRef((props, ref) => {
   );
 });
 
+Tooltip.displayName = "Tooltip";
 export default Tooltip;

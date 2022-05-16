@@ -14,6 +14,11 @@ import "./styles/index.scss";
 import FloatingButtons from "./components/FloatingButtons";
 import FeedbackApp from "./pages/feedback";
 // helpers
+import {
+  addOrRefreshTables,
+  createNewTable,
+  getTablesAtLocation,
+} from "./helpers/tables";
 const fetchSync = require("sync-fetch");
 
 export const CONFIG = {
@@ -102,6 +107,7 @@ function App() {
 
   const tooltipRef = useRef();
 
+  // reload interval
   useEffect(() => {
     if (CONFIG.reload > 0 && interval === null)
       interval = setInterval(() => setReloadTables(true), CONFIG.reload * 1000);
@@ -161,10 +167,9 @@ function App() {
   useEffect(() => {
     if (reloadTables) {
       if (locationData != null)
-        fetch(process.env.REACT_APP_BACKEND + "tables/" + locationId)
-          .then((res) => res.json())
-          .then((data) => setTables(data))
-          .catch((err) => console.error(err));
+        addOrRefreshTables(locationId).then(() =>
+          setTables(getTablesAtLocation(locationId))
+        );
       setTimeout(() => {
         setReloadTables(false);
       }, 400);
@@ -206,7 +211,7 @@ function App() {
             e.preventDefault();
             break;
           case "n":
-            addTable();
+            createNewTable(locationId).then(() => setReloadTables(true));
             break;
           case "r":
             setReloadTables(true);
@@ -299,7 +304,7 @@ function App() {
       movingTableNewPos,
       setMovingTableNewPos,
       changeLocation,
-    ] // addTable should be here instead of the eslint disable, because react expects it to parse every funciton as an dependency
+    ]
   );
 
   useEffect(() => {
@@ -311,37 +316,6 @@ function App() {
       document.removeEventListener("keydown", handleKeyPress);
     };
   }, [handleKeyPress]);
-
-  /** sends a post request to set a new table*/
-  function addTable() {
-    fetch(process.env.REACT_APP_BACKEND + "addTable", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        tableNumber: "",
-        position: {
-          x: Math.floor(Math.random() * 200) + 300,
-          y: Math.floor(Math.random() * 100),
-          r: 0,
-        },
-        user: [],
-        location: locationId,
-      }),
-    }).then(() => setReloadTables(true));
-  }
-
-  /** sends a post request to delete a table from the db
-   * @param {number} id table id
-   */
-  function removeTable(id) {
-    fetch(process.env.REACT_APP_BACKEND + "removeTable", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        id: id,
-      }),
-    }).then(() => setReloadTables(true));
-  }
 
   /** sends request to backend to add a user to a table
    * @param {number} tableId tables id
@@ -515,7 +489,6 @@ function App() {
           setSearchOpen={(val) => {
             setSearchOpen(val);
           }}
-          addTable={() => addTable()}
           setReloadTables={() => setReloadTables(true)}
           searchOverwrite={searchOverwrite}
           highlightRoom={(name) => setHighlightedRoom(name)}
@@ -531,17 +504,12 @@ function App() {
           setHoverTooltopPosition={(pos) => setHoverTooltopPosition(pos)}
         />
         <Tooltip
-          table={tables?.find((t) => t.id === tooltipTableId)}
+          tableId={tooltipTableId}
           visible={tooltipVisible}
           popup={popupOpen}
           openPopup={() => setPopupOpen(true)}
           closePopup={() => setPopupOpen(false)}
           changeTableNumber={(id, num) => changeTableNumber(id, num)}
-          removeTable={(id) => {
-            if (!window.confirm("Tisch wirklich löschen?")) return;
-            removeTable(id);
-            setPopupOpen(false);
-          }}
           // edit users
           deleteUser={(userId, tableId) => removeUserFromTable(userId, tableId)}
           addUserToTable={(tableId, userId) => addUserToTable(tableId, userId)}
