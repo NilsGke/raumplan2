@@ -304,65 +304,6 @@ function App() {
     };
   }, [handleKeyPress]);
 
-  /** sends request to backend to add a user to a table
-   * @param {number} tableId tables id
-   * @param {number} userId users id
-   */
-  async function addUserToTable(tableId, userId) {
-    fetch(process.env.REACT_APP_BACKEND + "addUserToTable", {
-      method: "POST",
-      headers: {
-        "content-type": "application/json",
-      },
-      body: JSON.stringify({
-        userId: userId,
-        tableId: tableId,
-      }),
-    }).then(() => setReloadTables(false));
-  }
-
-  /** function that removes a user from a table in the db
-   * @param {number} userId users id
-   * @param {number} tableId tables id
-   */
-  async function removeUserFromTable(userId, tableId) {
-    fetch(process.env.REACT_APP_BACKEND + "removeUserFromTable", {
-      method: "POST",
-      headers: {
-        "content-type": "application/json",
-      },
-      body: JSON.stringify({
-        userId,
-        tableId,
-      }),
-    }).then(() => setReloadTables(true));
-  }
-
-  /** function that changes the tables number (/name)
-   * @param {number} tableId tables id
-   * @param {string} newTableNumber table number (can also be letters, so its a string)
-   */
-  function changeTableNumber(tableId, newTableNumber) {
-    fetch(process.env.REACT_APP_BACKEND + "changeTableNumber", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        id: tableId,
-        tableNumber: newTableNumber,
-      }),
-    }).then(() => setReloadTables(true));
-  }
-
-  /** function that opens the serach and puts something in the serach bar
-   * @param {string} searchString string to put into the serach bar of the serach thingy
-   */
-  function openSearch(searchString) {
-    floatingButtonsRef.current.searchmenuRef.current.setOpen(true);
-    floatingButtonsRef.current.searchmenuRef.current.setSearchString(
-      searchString
-    );
-  }
-
   /** function that sets up everything for the new location (deletes old tables and stuff)
    * @param {number} id id of the new location
    */
@@ -490,12 +431,8 @@ function App() {
           setHoverTooltopPosition={(pos) => setHoverTooltopPosition(pos)}
         />
         <Tooltip
-          tables={tables}
-          //edit table
-          changeTableNumber={(id, num) => changeTableNumber(id, num)}
           // edit users
-          deleteUser={(userId, tableId) => removeUserFromTable(userId, tableId)}
-          addUserToTable={(tableId, userId) => addUserToTable(tableId, userId)}
+          setReloadTables={() => setReloadTables(true)}
           updateTables={() => setReloadTables(true)}
           // move table
           currentlyMovingTable={movingTable}
@@ -522,7 +459,12 @@ function App() {
           }}
           resetMovingTable={() => resetMovingTable()}
           setHoverTooltopPosition={(pos) => setHoverTooltopPosition(pos)}
-          openSearch={(name) => openSearch(name)}
+          openSearch={(searchString) => {
+            floatingButtonsRef.current.searchmenuRef.current.setOpen(true);
+            floatingButtonsRef.current.searchmenuRef.current.setSearchString(
+              searchString
+            );
+          }}
           newRotation={movingTableNewPos.r}
           ref={tooltipRef}
         />
