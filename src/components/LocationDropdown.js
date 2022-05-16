@@ -1,17 +1,33 @@
-import React, { useEffect, useRef } from "react";
+import React, {
+  forwardRef,
+  useEffect,
+  useRef,
+  useImperativeHandle,
+} from "react";
 import "../styles/locationDropdown.scss";
 const fetchSync = require("sync-fetch");
 
 let allLocations = [];
 let gotAllLocations = false;
 
-export default function LocationDropdown(props) {
-  if (props.open && !gotAllLocations) {
+const LocationDropdown = forwardRef((props, ref) => {
+  // state if dropdown is open or not
+  const [isOpen, setIsOpen] = React.useState(false);
+
+  if (isOpen && !gotAllLocations) {
     allLocations = fetchSync(
       process.env.REACT_APP_BACKEND + "locations/"
     ).json();
     gotAllLocations = true;
   }
+
+  // imparitive handle for the dropdown
+  useImperativeHandle(ref, () => ({
+    isOpen,
+    setOpen(open) {
+      setIsOpen(open);
+    },
+  }));
 
   const useFocus = () => {
     const htmlElRef = useRef(null);
@@ -26,11 +42,11 @@ export default function LocationDropdown(props) {
   useEffect(setInputFocus);
 
   return (
-    <div id="locationDropdownContainer" className={props.open ? "open" : ""}>
+    <div id="locationDropdownContainer" className={isOpen ? "open" : ""}>
       <div id="locationDropdown">
         {(allLocations || []).map((l, i) => {
           let focusRef;
-          if (props.open && props.currentLocation === i)
+          if (isOpen && props.currentLocation === i)
             focusRef = { ref: inputRef };
           return (
             <button
@@ -48,4 +64,6 @@ export default function LocationDropdown(props) {
       </div>
     </div>
   );
-}
+});
+
+export default LocationDropdown;
