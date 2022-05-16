@@ -55,23 +55,9 @@ function App() {
   const [tables, setTables] = useState(null);
   const [reloadTables, setReloadTables] = useState(true);
 
-  // search function
-  const [searchOpen, setSearchOpen] = useState(false);
-  const [searchOverwrite, setSearchOverwrite] = useState(false);
-  // loaction menu
-  const [locationDropDownOpen, setLocationDropDownOpen] = useState(false);
-
   // teams and rooms on the map
   const [teamlocations, setTeamlocations] = useState(null);
   const [rooms, setRooms] = useState(null);
-
-  // calender popup
-  const [calender, setCalender] = useState({ visible: false, data: null });
-
-  // tooltip
-  const [tooltipTableId, setTooltipTableId] = useState(-1);
-  const [tooltipVisible, setTooltipVisible] = useState(false);
-  const [popupOpen, setPopupOpen] = useState(false);
 
   // move a table
   const [movingTable, setMovingTable] = useState(false);
@@ -101,6 +87,8 @@ function App() {
   );
 
   const tooltipRef = useRef();
+  const calenderRef = useRef();
+  const floatingButtonsRef = useRef();
 
   useEffect(() => {
     if (CONFIG.reload > 0 && interval === null)
@@ -196,13 +184,11 @@ function App() {
         // key combination
         switch (e.key) {
           case "f":
-            setSearchOpen(true);
-            setLocationDropDownOpen(false);
+            floatingButtonsRef.current.openSearchmenu();
             e.preventDefault();
             break;
           case "l":
-            setLocationDropDownOpen(true);
-            setSearchOpen(false);
+            floatingButtonsRef.current.openLocationDropdown();
             e.preventDefault();
             break;
           case "n":
@@ -217,19 +203,23 @@ function App() {
         }
       } else if (e.key === "Escape") {
         // escape key
-        if (calender.visible) {
-          setCalender({ ...calender, visible: false });
-        } else if (tooltipRef.current.addUserFormOpen) {
+        if (calenderRef.current.isOpen) calenderRef.current.closeCalender();
+        else if (tooltipRef.current.addUserFormOpen)
           tooltipRef.current.closeAddUserForm();
-        } else if (movingTable) {
-          resetMovingTable();
-        } else if (popupOpen) {
-          setPopupOpen(false);
-        } else if (tooltipVisible) {
-          setTooltipVisible(false);
-        } else if (locationDropDownOpen || searchOpen) {
-          setLocationDropDownOpen(false);
-          setSearchOpen(false);
+        else if (movingTable) resetMovingTable();
+        else if (tooltipRef.current.isPopup)
+          tooltipRef.current.setIsPopup(false);
+        else if (tooltipRef.current.visible)
+          tooltipRef.current.setVisible(false);
+        else if (
+          floatingButtonsRef.current.searchmenuRef.current.isOpen ||
+          floatingButtonsRef.current.locationDropdownRef.current.isOpen
+        ) {
+          floatingButtonsRef.current.clearButtonBorders();
+          floatingButtonsRef.current.searchmenuRef.current.setOpen(false);
+          floatingButtonsRef.current.locationDropdownRef.current.setOpen(false);
+        } else if (floatingButtonsRef.current.toggledOpen) {
+          floatingButtonsRef.current.setToggledOpen(false);
         }
       } else if (e.keyCode >= 37 && e.keyCode <= 40) {
         //arrow keys
@@ -270,7 +260,9 @@ function App() {
             default:
               break;
           }
-        } else if (locationDropDownOpen) {
+        } else if (
+          floatingButtonsRef.current.locationDropdownRef.current.isOpen
+        ) {
           switch (e.keyCode) {
             case 38:
               // up
@@ -288,18 +280,13 @@ function App() {
         }
       }
     },
-    // eslint-disable-next-line
     [
-      locationDropDownOpen,
-      searchOpen,
       movingTable,
-      popupOpen,
-      tooltipVisible,
       movingTable,
       movingTableNewPos,
       setMovingTableNewPos,
       changeLocation,
-    ] // addTable should be here instead of the eslint disable, because react expects it to parse every funciton as an dependency
+    ]
   );
 
   useEffect(() => {
@@ -396,10 +383,10 @@ function App() {
    * @param {string} searchString string to put into the serach bar of the serach thingy
    */
   function openSearch(searchString) {
-    setSearchOpen(true);
-
-    setLocationDropDownOpen(false);
-    setSearchOverwrite(searchString);
+    floatingButtonsRef.current.searchmenuRef.current.setOpen(true);
+    floatingButtonsRef.current.searchmenuRef.current.setSearchString(
+      searchString
+    );
   }
 
   /** function that sets up everything for the new location (deletes old tables and stuff)
@@ -409,7 +396,7 @@ function App() {
     if (locationId === id) return;
     localStorage.setItem("raumplan", JSON.stringify({ location: id }));
     setMovingTable(false);
-    setPopupOpen(false);
+    tooltipRef.current.setVisible(false);
     setLocationId(id);
     setReloadTables(true);
   }
@@ -456,7 +443,12 @@ function App() {
         {teamlocations?.map((location, i) => (
           <Teamlocation
             key={i}
-            openSearch={(s) => openSearch(s)}
+            openSearch={(s) => {
+              floatingButtonsRef.current.openSearchmenu();
+              floatingButtonsRef.current.searchmenuRef.current.setSearchString(
+                s
+              );
+            }}
             data={location}
           />
         ))}
@@ -466,7 +458,10 @@ function App() {
             key={i}
             data={room}
             highlighted={room.name === highlightedRoom}
-            openCalender={(data) => setCalender({ visible: true, data: data })}
+            openCalender={(data) => {
+              calenderRef.current.openCalender(data);
+              calenderRef.current.setData(data);
+            }}
           />
         ))}
 
@@ -493,15 +488,13 @@ function App() {
               <div className="tableDraggable">
                 <Table
                   highlighted={highlightedTable === table.id}
-                  active={
-                    table.id === tooltipTableId && (tooltipVisible || popupOpen)
-                  }
                   locationData={locationData}
                   data={table}
-                  tooltip={(visible) => setTooltipVisible(visible)}
-                  changeTooltipTable={(id) => setTooltipTableId(id)}
-                  popup={() => setPopupOpen(true)}
-                  popupOpen={popupOpen}
+                  setTooltipVisible={(bool) =>
+                    tooltipRef.current.setVisible(bool)
+                  }
+                  changeTooltipTable={(id) => tooltipRef.current.setTable(id)}
+                  openPopup={() => tooltipRef.current.setIsPopup(true)}
                   moving={movingTable && table.id === movingTableId}
                   newPosition={movingTableNewPos}
                 />
@@ -510,43 +503,29 @@ function App() {
           );
         })}
         <FloatingButtons
+          ref={floatingButtonsRef}
           images={images}
-          searchOpen={searchOpen}
-          setSearchOpen={(val) => {
-            setSearchOpen(val);
-          }}
           addTable={() => addTable()}
           setReloadTables={() => setReloadTables(true)}
-          searchOverwrite={searchOverwrite}
           highlightRoom={(name) => setHighlightedRoom(name)}
           highlightTable={(id) => setHighlightedTable(id)}
           currentLocation={locationId}
           changeLocation={(id) => changeLocation(id)}
-          clearOverwrite={() => setSearchOverwrite(false)}
           reloadTables={reloadTables}
-          locationDropDownOpen={locationDropDownOpen}
-          setlocationDropDownOpen={(val) => setLocationDropDownOpen(val)}
           setHighlightedTable={(table) => setHighlightedTable(table)}
           setHighlightedRoom={(room) => setHighlightedRoom(room)}
           setHoverTooltopPosition={(pos) => setHoverTooltopPosition(pos)}
         />
         <Tooltip
-          table={tables?.find((t) => t.id === tooltipTableId)}
-          visible={tooltipVisible}
-          popup={popupOpen}
-          openPopup={() => setPopupOpen(true)}
-          closePopup={() => setPopupOpen(false)}
+          tables={tables}
+          //edit table
           changeTableNumber={(id, num) => changeTableNumber(id, num)}
-          removeTable={(id) => {
-            if (!window.confirm("Tisch wirklich löschen?")) return;
-            removeTable(id);
-            setPopupOpen(false);
-          }}
+          removeTable={(id) => removeTable(id)}
           // edit users
           deleteUser={(userId, tableId) => removeUserFromTable(userId, tableId)}
           addUserToTable={(tableId, userId) => addUserToTable(tableId, userId)}
           updateTables={() => setReloadTables(true)}
-          // move tables
+          // move table
           currentlyMovingTable={movingTable}
           moveTable={(tableId, oldPos) => {
             setMovingTableNewPos({ x: 0, y: 0, r: oldPos.r });
@@ -570,16 +549,12 @@ function App() {
             setReloadTables(true);
           }}
           resetMovingTable={() => resetMovingTable()}
-          ref={tooltipRef}
           setHoverTooltopPosition={(pos) => setHoverTooltopPosition(pos)}
           openSearch={(name) => openSearch(name)}
           newRotation={movingTableNewPos.r}
+          ref={tooltipRef}
         />
-        <Calender
-          data={calender.data}
-          visible={calender.visible}
-          close={() => setCalender({ ...calender, visible: false })}
-        />
+        <Calender ref={calenderRef} />
       </div>
     </>
   );
