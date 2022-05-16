@@ -24,27 +24,46 @@ const Tooltip = forwardRef((props, ref) => {
   const [addUserFormOpen, openUserForm] = useState(false);
   const [table, setTable] = useState(getTableById(props.tableId));
 
-  const myRef = React.createRef();
+  const [tableId, setTableId] = useState(-1);
+  const [isPopup, setIsPopup] = useState(false);
+  const [resetPosition, setResetPosition] = useState(false);
 
   useEffect(() => {
-    setTable(getTableById(props.tableId));
-  }, [props.tableId]);
+    setTable(getTableById(tableId));
+  }, [tableId]);
 
   const defaultValue = table?.tableNumber;
-  const isDraggable = !props.popup
-    ? {
+  const isDraggable = isPopup
+    ? []
+    : {
         position: {
           x: table?.x + 80 || 0,
           y: table?.y - 40 || 0,
         },
-      }
-    : [];
+      };
+
+  useEffect(() => {
+    if (resetPosition) setResetPosition(false);
+  }, [resetPosition]);
 
   useImperativeHandle(ref, () => ({
+    visible: visible,
+    setVisible(value) {
+      if (!isPopup) setVisibility(value);
+    },
     closeAddUserForm() {
       openUserForm(false);
     },
+    setTable(id) {
+      if (!isPopup) setTableId(id);
+    },
+    isPopup,
+    setIsPopup(bool) {
+      setIsPopup(bool);
+      setResetPosition(true);
+    },
     addUserFormOpen: addUserFormOpen,
+    tableId: tableId,
   }));
 
   const hideButton = props.currentlyMovingTable
@@ -66,16 +85,15 @@ const Tooltip = forwardRef((props, ref) => {
         defaultClassNameDragging="dragging"
       >
         <div
-          ref={myRef}
           // id="tooltip"
-          className={"drag " + (props.popup ? "popup" : "")}
+          className={"drag " + (isPopup ? "popup" : "")}
           {...{ id: "tooltip" }}
           style={{
-            zIndex: props.popup || visible || props.visible ? 2 : -1,
-            position: props.popup ? "fixed" : "relative",
-            transform: props.popup ? "translate(-50%, -50%)" : "",
-            transitionDelay: visible || props.visible ? "" : " .1s",
-            opacity: props.popup || visible || props.visible ? 1 : 0,
+            zIndex: isPopup || visible ? 2 : -1,
+            position: isPopup ? "fixed" : "relative",
+            transform: isPopup ? "translate(-50%, -50%)" : "",
+            transitionDelay: visible ? "" : " .1s",
+            opacity: isPopup || visible ? 1 : 0,
           }}
           onMouseEnter={() => setVisibility(true)}
           onMouseLeave={() => setVisibility(false)}
@@ -94,7 +112,7 @@ const Tooltip = forwardRef((props, ref) => {
               className="noDragHere"
               defaultValue={defaultValue}
               autoComplete="off"
-              disabled={!props.popup}
+              disabled={!isPopup}
               onBlur={(e) => {
                 props.changeTableNumber(table?.id, e.target.value);
                 e.preventDefault();
@@ -108,7 +126,7 @@ const Tooltip = forwardRef((props, ref) => {
             onMouseOver={() => props.setHoverTooltopPosition("left")}
           >
             <button
-              onClick={() => props.openPopup()}
+              onClick={() => setIsPopup(true)}
               // onTouchStart={() => props.openPopup()}
               className="noDragHere"
             >
@@ -117,7 +135,7 @@ const Tooltip = forwardRef((props, ref) => {
           </div>
           <div id="closeButtonContainer">
             <button
-              onClick={() => props.closePopup()}
+              onClick={() => setIsPopup(false)}
               className="noDragHere"
               style={hideButton}
             >

@@ -1,4 +1,10 @@
-import { useState } from "react";
+import {
+  forwardRef,
+  useState,
+  useRef,
+  useImperativeHandle,
+  useEffect,
+} from "react";
 import { Link } from "react-router-dom";
 import { useMediaQuery } from "react-responsive";
 import { Squash as Hamburger } from "hamburger-react";
@@ -16,11 +22,35 @@ import { IoMdAdd } from "react-icons/io";
 import { MODIFIER_PREFIX } from "../";
 import { createNewTable } from "../helpers/tables";
 
-export default function FloatingButtons(props) {
+const FloatingButtons = forwardRef((props, ref) => {
   const isTabletOrMobile = useMediaQuery({ query: "(max-width: 1000px)" });
+  const [activeButton, setActiveButton] = useState("");
 
   const [toggledOpen, setToggledOpen] = useState(false);
   if (props.forceOpen) setToggledOpen(true);
+
+  const locationDropdownRef = useRef();
+  const searchmenuRef = useRef();
+
+  useImperativeHandle(ref, () => ({
+    openSearchmenu() {
+      locationDropdownRef.current.setOpen(false);
+      searchmenuRef.current.setOpen(true);
+    },
+    openLocationDropdown() {
+      searchmenuRef.current.setOpen(false);
+      locationDropdownRef.current.setOpen(true);
+    },
+    searchmenuRef,
+    locationDropdownRef,
+    clearButtonBorders() {
+      setActiveButton("");
+    },
+    toggledOpen,
+    setToggledOpen(bool) {
+      setToggledOpen(bool);
+    },
+  }));
 
   return (
     <>
@@ -38,10 +68,16 @@ export default function FloatingButtons(props) {
           >
             <button
               className="floatingButton"
-              style={{ border: props.searchOpen ? "2px solid #00beff" : "" }}
+              style={{
+                border:
+                  activeButton === "searchmenu" ? "2px solid #00beff" : "",
+              }}
               onClick={() => {
-                props.setlocationDropDownOpen(false);
-                props.setSearchOpen(!props.searchOpen);
+                locationDropdownRef.current.setOpen(false);
+                searchmenuRef.current.setOpen(!searchmenuRef.current.isOpen);
+                setActiveButton(
+                  !searchmenuRef.current.isOpen ? "searchmenu" : ""
+                );
               }}
             >
               <AiOutlineSearch />
@@ -54,11 +90,19 @@ export default function FloatingButtons(props) {
             <button
               className="floatingButton"
               style={{
-                border: props.locationDropDownOpen ? "2px solid #00beff" : "",
+                border:
+                  activeButton === "locationDropdown"
+                    ? "2px solid #00beff"
+                    : "",
               }}
               onClick={() => {
-                props.setSearchOpen(false);
-                props.setlocationDropDownOpen(!props.locationDropDownOpen);
+                searchmenuRef.current.setOpen(false);
+                locationDropdownRef.current.setOpen(
+                  !locationDropdownRef.current.isOpen
+                );
+                setActiveButton(
+                  !locationDropdownRef.current.isOpen ? "locationDropdown" : ""
+                );
               }}
             >
               <GrMapLocation />
@@ -119,8 +163,8 @@ export default function FloatingButtons(props) {
           }}
           onClick={() => {
             if (toggledOpen) {
-              props.setSearchOpen(false);
-              props.setlocationDropDownOpen(false);
+              searchmenuRef.current.setOpen(false);
+              locationDropdownRef.current.setOpen(false);
             }
             setToggledOpen(!toggledOpen);
           }}
@@ -128,23 +172,22 @@ export default function FloatingButtons(props) {
           <Hamburger toggled={toggledOpen} color="white" />
         </button>
         <LocationDropdown
-          open={props.locationDropDownOpen}
-          close={() => props.setlocationDropDownOpen(false)}
+          ref={locationDropdownRef}
           locations={props.locations}
           currentLocation={props.currentLocation}
           changeLocation={(id) => props.changeLocation(id)}
         />
         <Searchmenu
+          ref={searchmenuRef}
           images={props.images}
-          close={() => props.setSearchOpen(false)}
-          open={props.searchOpen}
           highlightRoom={(name) => props.setHighlightedRoom(name)}
           highlightTable={(id) => props.setHighlightedTable(id)}
           changeLocation={(id) => props.changeLocation(id)}
-          overwrite={props.searchOverwrite}
-          clearOverwrite={() => props.clearOverwrite(false)}
         />
       </div>
     </>
   );
-}
+});
+
+FloatingButtons.displayName = "FloatingButtons";
+export default FloatingButtons;

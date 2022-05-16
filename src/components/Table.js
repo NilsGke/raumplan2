@@ -4,14 +4,10 @@ import "../styles/table.scss";
 export default function Table(props) {
   return (
     <div
-      className={
-        "table " +
-        (props.active ? " active " : "") +
-        (props.highlighted ? " highlighted " : "")
-      }
+      className={"table " + (props.highlighted ? " highlighted " : "")}
       onClick={(e) => {
         if (e.nativeEvent.pointerType === "touch") return; // dont open popup if touched on mobile (thats what the edit button is for)
-        props.popup();
+        props.openPopup();
       }}
       style={{
         height: props.locationData.tableHeight + "px",
@@ -24,12 +20,11 @@ export default function Table(props) {
           : `rotate(${props.data.r}deg)`,
       }}
       onMouseEnter={() => {
-        if (props.popupOpen) return;
-        props.tooltip(true);
+        props.setTooltipVisible(true);
         props.changeTooltipTable(props.data.id);
       }}
       onMouseLeave={() => {
-        props.tooltip(false);
+        props.setTooltipVisible(false);
       }}
     >
       {props.data.tableNumber.substr(-3, 3)}
