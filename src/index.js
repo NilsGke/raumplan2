@@ -14,6 +14,11 @@ import "./styles/index.scss";
 import FloatingButtons from "./components/FloatingButtons";
 import FeedbackApp from "./pages/feedback";
 // helpers
+import {
+  addOrRefreshTables,
+  createNewTable,
+  getTablesAtLocation,
+} from "./helpers/tables";
 const fetchSync = require("sync-fetch");
 
 export const CONFIG = {
@@ -90,6 +95,7 @@ function App() {
   const calenderRef = useRef();
   const floatingButtonsRef = useRef();
 
+  // reload interval
   useEffect(() => {
     if (CONFIG.reload > 0 && interval === null)
       interval = setInterval(() => setReloadTables(true), CONFIG.reload * 1000);
@@ -149,10 +155,9 @@ function App() {
   useEffect(() => {
     if (reloadTables) {
       if (locationData != null)
-        fetch(process.env.REACT_APP_BACKEND + "tables/" + locationId)
-          .then((res) => res.json())
-          .then((data) => setTables(data))
-          .catch((err) => console.error(err));
+        addOrRefreshTables(locationId).then(() =>
+          setTables(getTablesAtLocation(locationId))
+        );
       setTimeout(() => {
         setReloadTables(false);
       }, 400);
@@ -192,7 +197,7 @@ function App() {
             e.preventDefault();
             break;
           case "n":
-            addTable();
+            createNewTable(locationId).then(() => setReloadTables(true));
             break;
           case "r":
             setReloadTables(true);
@@ -298,96 +303,6 @@ function App() {
       document.removeEventListener("keydown", handleKeyPress);
     };
   }, [handleKeyPress]);
-
-  /** sends a post request to set a new table*/
-  function addTable() {
-    fetch(process.env.REACT_APP_BACKEND + "addTable", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        tableNumber: "",
-        position: {
-          x: Math.floor(Math.random() * 200) + 300,
-          y: Math.floor(Math.random() * 100),
-          r: 0,
-        },
-        user: [],
-        location: locationId,
-      }),
-    }).then(() => setReloadTables(true));
-  }
-
-  /** sends a post request to delete a table from the db
-   * @param {number} id table id
-   */
-  function removeTable(id) {
-    fetch(process.env.REACT_APP_BACKEND + "removeTable", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        id: id,
-      }),
-    }).then(() => setReloadTables(true));
-  }
-
-  /** sends request to backend to add a user to a table
-   * @param {number} tableId tables id
-   * @param {number} userId users id
-   */
-  async function addUserToTable(tableId, userId) {
-    fetch(process.env.REACT_APP_BACKEND + "addUserToTable", {
-      method: "POST",
-      headers: {
-        "content-type": "application/json",
-      },
-      body: JSON.stringify({
-        userId: userId,
-        tableId: tableId,
-      }),
-    }).then(() => setReloadTables(false));
-  }
-
-  /** function that removes a user from a table in the db
-   * @param {number} userId users id
-   * @param {number} tableId tables id
-   */
-  async function removeUserFromTable(userId, tableId) {
-    fetch(process.env.REACT_APP_BACKEND + "removeUserFromTable", {
-      method: "POST",
-      headers: {
-        "content-type": "application/json",
-      },
-      body: JSON.stringify({
-        userId,
-        tableId,
-      }),
-    }).then(() => setReloadTables(true));
-  }
-
-  /** function that changes the tables number (/name)
-   * @param {number} tableId tables id
-   * @param {string} newTableNumber table number (can also be letters, so its a string)
-   */
-  function changeTableNumber(tableId, newTableNumber) {
-    fetch(process.env.REACT_APP_BACKEND + "changeTableNumber", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        id: tableId,
-        tableNumber: newTableNumber,
-      }),
-    }).then(() => setReloadTables(true));
-  }
-
-  /** function that opens the serach and puts something in the serach bar
-   * @param {string} searchString string to put into the serach bar of the serach thingy
-   */
-  function openSearch(searchString) {
-    floatingButtonsRef.current.searchmenuRef.current.setOpen(true);
-    floatingButtonsRef.current.searchmenuRef.current.setSearchString(
-      searchString
-    );
-  }
 
   /** function that sets up everything for the new location (deletes old tables and stuff)
    * @param {number} id id of the new location
@@ -505,7 +420,6 @@ function App() {
         <FloatingButtons
           ref={floatingButtonsRef}
           images={images}
-          addTable={() => addTable()}
           setReloadTables={() => setReloadTables(true)}
           highlightRoom={(name) => setHighlightedRoom(name)}
           highlightTable={(id) => setHighlightedTable(id)}
@@ -517,13 +431,8 @@ function App() {
           setHoverTooltopPosition={(pos) => setHoverTooltopPosition(pos)}
         />
         <Tooltip
-          tables={tables}
-          //edit table
-          changeTableNumber={(id, num) => changeTableNumber(id, num)}
-          removeTable={(id) => removeTable(id)}
           // edit users
-          deleteUser={(userId, tableId) => removeUserFromTable(userId, tableId)}
-          addUserToTable={(tableId, userId) => addUserToTable(tableId, userId)}
+          setReloadTables={() => setReloadTables(true)}
           updateTables={() => setReloadTables(true)}
           // move table
           currentlyMovingTable={movingTable}
@@ -550,7 +459,12 @@ function App() {
           }}
           resetMovingTable={() => resetMovingTable()}
           setHoverTooltopPosition={(pos) => setHoverTooltopPosition(pos)}
-          openSearch={(name) => openSearch(name)}
+          openSearch={(searchString) => {
+            floatingButtonsRef.current.searchmenuRef.current.setOpen(true);
+            floatingButtonsRef.current.searchmenuRef.current.setSearchString(
+              searchString
+            );
+          }}
           newRotation={movingTableNewPos.r}
           ref={tooltipRef}
         />
