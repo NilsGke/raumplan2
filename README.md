@@ -6,8 +6,6 @@
 
 ![SASS](https://img.shields.io/badge/SASS-hotpink.svg?style=for-the-badge&logo=SASS&logoColor=white)
 
-![MySQL](https://img.shields.io/badge/mysql-%2300f.svg?style=for-the-badge&logo=mysql&logoColor=white)
-
 ## Was ist der Raumplan
 
 Den Raumplan habe ich zusammen mit David Beyer in meinem zweiwöchigen Praktikum bei Seibert Media entwickelt. Er ist dazu gedacht, dass Mitarbeiter bei Seibert Media einen Überblick über die Büroflächen und Tische bekommen. Man kann so einfach Personen finden oder schauen, wer an einem Tisch sitzt.
