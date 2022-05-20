@@ -1,4 +1,10 @@
-import { forwardRef, useEffect, useState, useImperativeHandle } from "react";
+import {
+  forwardRef,
+  useEffect,
+  useState,
+  useImperativeHandle,
+  createRef,
+} from "react";
 import User from "./User";
 // icons
 import { IconContext } from "react-icons";
@@ -31,6 +37,13 @@ const Searchmenu = forwardRef((props, ref) => {
       setSearchString(searchString);
     },
   }));
+
+  const inputRef = createRef();
+  useEffect(() => {
+    if (isOpen) {
+      inputRef.current.select();
+    }
+  }, [isOpen]);
 
   useEffect(() => {
     if (searchString === "") {
@@ -102,6 +115,7 @@ const Searchmenu = forwardRef((props, ref) => {
             type="text"
             placeholder="Suchen..."
             value={searchString}
+            ref={inputRef}
             onChange={(e) => {
               setSearchString(e.target.value);
             }}
