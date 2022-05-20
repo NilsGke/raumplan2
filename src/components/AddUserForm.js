@@ -50,7 +50,7 @@ const AddUserForm = forwardRef((props, ref) => {
   const inputRef = createRef();
   useEffect(() => {
     if (open) {
-      inputRef.current.focus();
+      inputRef.current.select();
     }
   }, [open]);
 
