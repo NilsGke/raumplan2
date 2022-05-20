@@ -257,7 +257,8 @@ const Tooltip = forwardRef((props, ref) => {
               onClick={() => {
                 if (!window.confirm("Tisch wirklich löschen?")) return;
                 deleteTable(table.id);
-                props.closePopup();
+                setIsPopup(false);
+                props.updateTables();
               }}
               data-tip={"Löschen"}
             >
