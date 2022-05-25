@@ -30,7 +30,7 @@ Jeder Tisch ist child von einem einem `react-draggable`, welches ursprünglich l
 
 ## Besonderheit: resource friendly
 
-Ich habe den Tischplan so geschrieben, dass nur die Ressourcen geholt werden, die wirklich benötigt werden. So werden beim initial page load nur die Daten der Aktuellen Location (Tischgröße), die Räume, Teams, Tische und das Grundriss-Bild von der aktuellen Location geladen. Die Benutzer und Teams werden erst geladen, wenn man mit der Maus über einen Tisch hovered und gespeichert um später wieder verwendet werden zu können.
+Ich versuche den Raumplan so zu entwickeln, dass nur die Ressourcen geholt werden, die wirklich benötigt werden. So werden beim initial page load nur die Daten der Aktuellen Location (Tischgröße), die Räume, Teams, Tische und das Grundriss-Bild von der aktuellen Location geladen. Die Benutzer und Teams werden erst geladen, wenn man mit der Maus über einen Tisch hovered und gespeichert um später wieder verwendet werden zu können.
 
 ## Backend
 

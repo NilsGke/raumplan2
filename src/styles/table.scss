@@ -27,3 +27,13 @@
     transition: background-color index.$transDur ease-in-out;
   }
 }
+
+// user prefers dark theme
+@media (prefers-color-scheme: dark) {
+  #app > .react-draggable.tableDraggable {
+    .table {
+      background-color: lighten(index.$bg3_dark, 10%);
+      border-color: lighten(index.$bg2_dark, 5%);
+    }
+  }
+}
