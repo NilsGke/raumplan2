@@ -105,7 +105,7 @@ const FloatingButtons = forwardRef((props, ref) => {
                 );
               }}
             >
-              <GrMapLocation />
+              <GrMapLocation className="invert" />
             </button>
           </div>
           <div
@@ -148,7 +148,7 @@ const FloatingButtons = forwardRef((props, ref) => {
               onClick={(e) => props.setReloadTables(true)}
             >
               <Link to="/feedback">
-                <MdOutlineFeedback />
+                <MdOutlineFeedback className="invert" />
               </Link>
             </button>
           </div>

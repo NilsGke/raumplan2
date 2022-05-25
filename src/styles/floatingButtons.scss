@@ -40,7 +40,7 @@ button.floatingButton {
   * {
     cursor: pointer;
   }
-  svg {
+  svg.invert {
     filter: invert(1);
   }
   &#toggleButton {
@@ -55,5 +55,13 @@ button.floatingButton {
     display: flex;
     align-items: center;
     color: black;
+  }
+}
+
+@media (prefers-color-scheme: light) {
+  button.floatingButton {
+    svg {
+      filter: invert(1);
+    }
   }
 }
