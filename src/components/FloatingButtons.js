@@ -18,9 +18,11 @@ import { GrMapLocation } from "react-icons/gr";
 import { AiOutlineReload, AiOutlineSearch } from "react-icons/ai";
 import { MdOutlineFeedback } from "react-icons/md";
 import { IoMdAdd } from "react-icons/io";
+import { BiUndo } from "react-icons/bi";
 
 import { MODIFIER_PREFIX } from "../";
 import { createNewTable } from "../helpers/tables";
+import { undo } from "../helpers/history";
 
 const FloatingButtons = forwardRef((props, ref) => {
   const isTabletOrMobile = useMediaQuery({ query: "(max-width: 1000px)" });
@@ -150,6 +152,14 @@ const FloatingButtons = forwardRef((props, ref) => {
               <Link to="/feedback">
                 <MdOutlineFeedback className="invert" />
               </Link>
+            </button>
+          </div>
+          <div id="undoButtonContainer" data-tip="Rückgängig">
+            <button
+              className="floatingButton"
+              onClick={(e) => undo().then(() => props.setReloadTables(true))}
+            >
+              <BiUndo />
             </button>
           </div>
         </div>

@@ -13,6 +13,7 @@ import Room from "./components/Room";
 import "./styles/index.scss";
 import FloatingButtons from "./components/FloatingButtons";
 import FeedbackApp from "./pages/feedback";
+import History from "./components/History";
 // helpers
 import {
   addOrRefreshTables,
@@ -470,6 +471,7 @@ function App() {
           newRotation={movingTableNewPos.r}
           ref={tooltipRef}
         />
+        <History reloadTables={() => setReloadTables(true)} />
         <Calender ref={calenderRef} />
       </div>
     </>
