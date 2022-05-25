@@ -3,8 +3,6 @@ import { getUserData } from "./users";
 
 let tableStorage = [];
 
-let history = [];
-
 /**
  * refreshes Tables
  * @param {number} locationid location id
@@ -68,7 +66,12 @@ export function createNewTable(locationId) {
  * @param {number} tableId tables id
  * @param {string} newTableNumber table number (can also be letters, so its a string)
  */
-export function changeTableNumber(tableId, newTableNumber, locationId) {
+export function changeTableNumber(
+  tableId,
+  newTableNumber,
+  locationId,
+  shouldAddToHistory
+) {
   //   return promise
   return new Promise((resolve, reject) =>
     fetch(process.env.REACT_APP_BACKEND + "changeTableNumber", {
@@ -102,21 +105,7 @@ export function addUserToTable(tableId, userId, locationId) {
         tableId: tableId,
       }),
     })
-      .then(() =>
-        addOrRefreshTables(locationId)
-          .then(() => {
-            const user = getUserData(userId);
-            addToHistory({
-              description: `added ${user.Person} to Table: ${getTableById(
-                tableId
-              )}`,
-              date: new Date(),
-              undo: async () =>
-                await removeUserFromTable(userId, tableId, locationId),
-            });
-          })
-          .then(resolve)
-      )
+      .then(() => addOrRefreshTables(locationId).then(resolve))
       .catch(reject)
   );
 }
@@ -138,18 +127,7 @@ export function removeUserFromTable(userId, tableId, locationId) {
         tableId,
       }),
     })
-      .then(() =>
-        addOrRefreshTables(locationId)
-          .then(() => {
-            const user = getUserData(userId);
-            addToHistory({
-              description: `removed ${user.Person} from Table: ${tableId}`,
-              date: new Date(),
-              undo: () => addUserToTable(tableId, userId, locationId),
-            });
-          })
-          .then(resolve)
-      )
+      .then(() => addOrRefreshTables(locationId).then(resolve))
       .catch(reject)
   );
 }
@@ -170,11 +148,6 @@ export function deleteTable(tableId) {
       .then(resolve)
       .catch(reject)
   );
-}
-
-export function undo() {
-  const lastAction = history.pop();
-  lastAction.undo();
 }
 
 const tables = () => tableStorage.slice();

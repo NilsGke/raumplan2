@@ -13,11 +13,11 @@ import Room from "./components/Room";
 import "./styles/index.scss";
 import FloatingButtons from "./components/FloatingButtons";
 import FeedbackApp from "./pages/feedback";
-import History from "./components/History";
 // helpers
 import {
   addOrRefreshTables,
   createNewTable,
+  getTableById,
   getTablesAtLocation,
 } from "./helpers/tables";
 import setColorTheme from "./helpers/theme";
@@ -88,6 +88,9 @@ function App() {
   const [highlightedRoom, setHighlightedRoom] = useState(null);
   const [highlightedTable, setHighlightedTable] = useState(null);
   const [highlightTimers, setHighlightTimers] = useState(0);
+
+  // history
+  const [history, setHistory] = useState([]);
 
   /**holds images of the building*/
   const images = importImages(
@@ -337,6 +340,31 @@ function App() {
         }),
       })
         .then(() => {
+          const tableId = movingTableId;
+          const oldPos = {
+            x: movingTableOldPos.x,
+            y: movingTableOldPos.y,
+            r: movingTableOldPos.r,
+          };
+          addToHistory({
+            description: `Tisch: ${
+              getTableById(movingTableId).tableNumber
+            } verschoben`,
+            undo: () => {
+              fetch(process.env.REACT_APP_BACKEND + "moveTable", {
+                method: "POST",
+                headers: {
+                  "content-type": "application/json",
+                },
+                body: JSON.stringify({
+                  id: tableId,
+                  x: oldPos.x,
+                  y: oldPos.y,
+                  r: oldPos.r,
+                }),
+              });
+            },
+          });
           setMovingTableNewPos();
         })
         .then(resolve);
@@ -348,6 +376,29 @@ function App() {
     setMovingTableNewPos({ x: 0, y: 0, r: 0 });
     setMovingTableOldPos({ x: 0, y: 0, r: 0 });
   }
+
+  function undo(length = 1) {
+    return new Promise(async (resolve, reject) => {
+      const historyTemp = history.slice();
+      const actions = historyTemp.splice(-length, length);
+      actions.forEach(async (action) => await action.undo());
+      setHistory(historyTemp);
+      setReloadTables(true);
+      resolve();
+    });
+  }
+
+  const addToHistory = (obj) => {
+    console.log("actually adding to history");
+    setHistory([
+      ...history,
+      {
+        ...obj,
+        date: new Date(),
+        id: history.map((h) => h.id).reduce((a, b) => a + b, 0) + 1,
+      },
+    ]);
+  };
 
   return (
     <>
@@ -423,6 +474,8 @@ function App() {
         <FloatingButtons
           ref={floatingButtonsRef}
           images={images}
+          history={history}
+          undo={(am) => undo(am)}
           setReloadTables={() => setReloadTables(true)}
           highlightRoom={(name) => setHighlightedRoom(name)}
           highlightTable={(id) => setHighlightedTable(id)}
@@ -469,9 +522,9 @@ function App() {
             );
           }}
           newRotation={movingTableNewPos.r}
+          addToHistory={(obj) => addToHistory(obj)}
           ref={tooltipRef}
         />
-        <History reloadTables={() => setReloadTables(true)} />
         <Calender ref={calenderRef} />
       </div>
     </>

@@ -25,6 +25,7 @@ import {
   getTableById,
   removeUserFromTable,
 } from "../helpers/tables";
+import { getUserData } from "../helpers/users";
 
 const Tooltip = forwardRef((props, ref) => {
   const [visible, setVisibility] = useState(false);
@@ -111,6 +112,12 @@ const Tooltip = forwardRef((props, ref) => {
               disabled={!isPopup}
               onBlur={(e) => {
                 changeTableNumber(table?.id, e.target.value, table.location);
+                props.addToHistory({
+                  description: `Tisch: "${defaultValue}" zu "${e.target.value}" umbenannt`,
+                  undo: () => {
+                    changeTableNumber(table.id, defaultValue, table.location);
+                  },
+                });
                 e.preventDefault();
               }}
             />
@@ -196,9 +203,24 @@ const Tooltip = forwardRef((props, ref) => {
                   id={userId}
                   deletable={true}
                   deleteUser={() =>
-                    removeUserFromTable(userId, tableId, table.location).then(
-                      () => setTable(getTableById(tableId))
-                    )
+                    removeUserFromTable(userId, tableId, table.location, true)
+                      .then(() => {
+                        props.addToHistory({
+                          description: `${
+                            getUserData(userId).Person
+                          } von Tisch: ${
+                            getTableById(tableId).tableNumber
+                          } gelöscht`,
+                          date: new Date(),
+                          undo: async () =>
+                            await addUserToTable(
+                              tableId,
+                              userId,
+                              table.location
+                            ),
+                        });
+                      })
+                      .then(() => setTable(getTableById(tableId)))
                   }
                   clickable={true}
                   clickHandler={({ Person }) => {
@@ -270,9 +292,18 @@ const Tooltip = forwardRef((props, ref) => {
       <AddUserForm
         ref={addUserFormRef}
         addUser={(userId) =>
-          addUserToTable(tableId, userId, table.location).then(() =>
-            setTable(getTableById(tableId))
-          )
+          addUserToTable(tableId, userId, table.location, true)
+            .then(() => {
+              props.addToHistory({
+                description: `added ${
+                  getUserData(userId).Person
+                } to Table: ${getTableById(tableId)}`,
+                date: new Date(),
+                undo: async () =>
+                  await removeUserFromTable(userId, tableId, table.location),
+              });
+            })
+            .then(() => setTable(getTableById(tableId)))
         }
         getTeam={(name) => props.getTeam(name)}
         closePopup={() => {
