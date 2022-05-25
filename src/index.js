@@ -19,12 +19,12 @@ import {
   createNewTable,
   getTablesAtLocation,
 } from "./helpers/tables";
+import setColorTheme from "./helpers/theme";
 const fetchSync = require("sync-fetch");
 
 export const CONFIG = {
   reload: 0, // refresh time in seconds
   minSearchLengh: 0,
-  darkmode: false,
 };
 
 function importImages(r) {
@@ -34,6 +34,8 @@ function importImages(r) {
   });
   return images;
 }
+
+setColorTheme();
 
 /**variable to hold locations*/
 let locations = [];
@@ -353,7 +355,7 @@ function App() {
         place={hoverTooltopPosition}
         offset={{ [hoverTooltopPosition]: 5 }}
       />
-      <div id="app" className={CONFIG.darkmode ? "dark" : "light"}>
+      <div id="app">
         <img src={images[locationData?.img] || ""} alt={"map"} id="map" />
         {teamlocations?.map((location, i) => (
           <Teamlocation
