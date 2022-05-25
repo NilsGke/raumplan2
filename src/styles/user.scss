@@ -1,12 +1,12 @@
 @use "index";
-
+@use "sass:color";
 .user {
-  color: white;
+  color: index.$text_light;
+  background: color.adjust(index.$bg1_light, $alpha: -0.4);
   transition: all index.$transDur ease-in-out;
   width: 50%;
   position: relative;
   padding: 10px;
-  background: #323336;
   border-radius: 15px;
   width: min-content;
   overflow: hidden;
@@ -40,7 +40,7 @@
     }
   }
   h4 {
-    color: #818283;
+    color: index.$grey_light;
   }
   .teams {
     display: flex;
@@ -70,12 +70,21 @@
     @keyframes bg_blink {
       from {
         background-color: #818283;
-        color: #818283;
       }
       to {
         background-color: #696969;
-        color: #696969;
       }
+    }
+  }
+}
+
+// dark mode
+@media (prefers-color-scheme: dark) {
+  .user {
+    color: index.$text_dark;
+    background: color.adjust(index.$bg3_dark, $alpha: -0.4);
+    h4 {
+      color: index.$grey_light;
     }
   }
 }
