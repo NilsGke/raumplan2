@@ -73,8 +73,8 @@ export function createNewTable(locationId) {
         location: locationId,
       }),
     })
-      .then(resolve)
-      .catch(reject)
+      .then((res) => res.json())
+      .then((data) => resolve(data.newId))
   );
 }
 
