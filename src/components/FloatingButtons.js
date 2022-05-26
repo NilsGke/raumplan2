@@ -25,7 +25,7 @@ import { MdOutlineFeedback } from "react-icons/md";
 import { IoMdAdd } from "react-icons/io";
 
 import { MODIFIER_PREFIX } from "../";
-import { createNewTable } from "../helpers/tables";
+import { createNewTable, deleteTable } from "../helpers/tables";
 import { undo } from "../helpers/history";
 
 const FloatingButtons = forwardRef((props, ref) => {
@@ -132,9 +132,17 @@ const FloatingButtons = forwardRef((props, ref) => {
             <button
               className="floatingButton"
               onClick={() =>
-                createNewTable(props.currentLocation).then(() =>
-                  props.setReloadTables(true)
-                )
+                createNewTable(props.currentLocation)
+                  .then((tableId) => {
+                    props.addToHistory({
+                      description: `Neuer Tisch erstellt (id: ${tableId})`,
+                      undo: () =>
+                        deleteTable(tableId).then(() =>
+                          props.setReloadTables(true)
+                        ),
+                    });
+                  })
+                  .then(() => props.setReloadTables(true))
               }
             >
               <IoMdAdd />
@@ -169,7 +177,7 @@ const FloatingButtons = forwardRef((props, ref) => {
               </Link>
             </button>
           </div>
-          <div id="historyButtonContainer" data-tip="Rückgängig">
+          <div id="historyButtonContainer" data-tip="Verlauf">
             <button
               className="floatingButton"
               onClick={() => {
