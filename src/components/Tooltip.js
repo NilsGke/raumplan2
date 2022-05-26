@@ -21,10 +21,12 @@ import { GrPowerReset } from "react-icons/gr";
 import {
   addUserToTable,
   changeTableNumber,
+  createTableWithValues,
   deleteTable,
   getTableById,
   removeUserFromTable,
 } from "../helpers/tables";
+import { getUserData } from "../helpers/users";
 
 const Tooltip = forwardRef((props, ref) => {
   const [visible, setVisibility] = useState(false);
@@ -110,7 +112,21 @@ const Tooltip = forwardRef((props, ref) => {
               autoComplete="off"
               disabled={!isPopup}
               onBlur={(e) => {
-                changeTableNumber(table?.id, e.target.value, table.location);
+                changeTableNumber(
+                  table?.id,
+                  e.target.value,
+                  table.location
+                ).then(() => props.setReloadTables());
+                props.addToHistory({
+                  description: `Tisch: "${table.tableNumber}" zu "${e.target.value}" umbenannt`,
+                  undo: () => {
+                    changeTableNumber(
+                      table.id,
+                      defaultValue,
+                      table.location
+                    ).then(() => props.setReloadTables());
+                  },
+                });
                 e.preventDefault();
               }}
             />
@@ -196,9 +212,24 @@ const Tooltip = forwardRef((props, ref) => {
                   id={userId}
                   deletable={true}
                   deleteUser={() =>
-                    removeUserFromTable(userId, tableId, table.location).then(
-                      () => setTable(getTableById(tableId))
-                    )
+                    removeUserFromTable(userId, tableId, table.location, true)
+                      .then(() => {
+                        props.addToHistory({
+                          description: `${
+                            getUserData(userId).Person
+                          } von Tisch: ${
+                            getTableById(tableId).tableNumber
+                          } gelöscht`,
+                          date: new Date(),
+                          undo: async () =>
+                            await addUserToTable(
+                              tableId,
+                              userId,
+                              table.location
+                            ),
+                        });
+                      })
+                      .then(() => setTable(getTableById(tableId)))
                   }
                   clickable={true}
                   clickHandler={({ Person }) => {
@@ -256,6 +287,12 @@ const Tooltip = forwardRef((props, ref) => {
               className={props.currentlyMovingTable ? "hidden " : ""}
               onClick={() => {
                 if (!window.confirm("Tisch wirklich löschen?")) return;
+                props.addToHistory({
+                  description: `Tisch: "${table.tableNumber}" gelöscht`,
+                  undo: () => {
+                    createTableWithValues(table);
+                  },
+                });
                 deleteTable(table.id);
                 setIsPopup(false);
                 props.updateTables();
@@ -270,9 +307,18 @@ const Tooltip = forwardRef((props, ref) => {
       <AddUserForm
         ref={addUserFormRef}
         addUser={(userId) =>
-          addUserToTable(tableId, userId, table.location).then(() =>
-            setTable(getTableById(tableId))
-          )
+          addUserToTable(tableId, userId, table.location, true)
+            .then(() => {
+              props.addToHistory({
+                description: `"${
+                  getUserData(userId).Person
+                }" zu "${getTableById(tableId)}" hinzugefügt`,
+                date: new Date(),
+                undo: async () =>
+                  await removeUserFromTable(userId, tableId, table.location),
+              });
+            })
+            .then(() => setTable(getTableById(tableId)))
         }
         getTeam={(name) => props.getTeam(name)}
         closePopup={() => {

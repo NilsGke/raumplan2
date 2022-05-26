@@ -11,16 +11,22 @@ import { Squash as Hamburger } from "hamburger-react";
 // components
 import LocationDropdown from "./LocationDropdown";
 import Searchmenu from "./Searchmenu";
+import History from "./History";
 // styles
 import "../styles/floatingButtons.scss";
 // icons
 import { GrMapLocation } from "react-icons/gr";
-import { AiOutlineReload, AiOutlineSearch } from "react-icons/ai";
+import {
+  AiOutlineReload,
+  AiOutlineSearch,
+  AiOutlineHistory,
+} from "react-icons/ai";
 import { MdOutlineFeedback } from "react-icons/md";
 import { IoMdAdd } from "react-icons/io";
 
 import { MODIFIER_PREFIX } from "../";
-import { createNewTable } from "../helpers/tables";
+import { createNewTable, deleteTable } from "../helpers/tables";
+import { undo } from "../helpers/history";
 
 const FloatingButtons = forwardRef((props, ref) => {
   const isTabletOrMobile = useMediaQuery({ query: "(max-width: 1000px)" });
@@ -31,18 +37,27 @@ const FloatingButtons = forwardRef((props, ref) => {
 
   const locationDropdownRef = useRef();
   const searchmenuRef = useRef();
+  const historyRef = useRef();
 
   useImperativeHandle(ref, () => ({
     openSearchmenu() {
       locationDropdownRef.current.setOpen(false);
+      historyRef.current.setOpen(false);
       searchmenuRef.current.setOpen(true);
     },
     openLocationDropdown() {
       searchmenuRef.current.setOpen(false);
+      historyRef.current.setOpen(false);
       locationDropdownRef.current.setOpen(true);
+    },
+    openHistory() {
+      searchmenuRef.current.setOpen(false);
+      locationDropdownRef.current.setOpen(false);
+      historyRef.current.setOpen(true);
     },
     searchmenuRef,
     locationDropdownRef,
+    historyRef,
     clearButtonBorders() {
       setActiveButton("");
     },
@@ -74,6 +89,7 @@ const FloatingButtons = forwardRef((props, ref) => {
               }}
               onClick={() => {
                 locationDropdownRef.current.setOpen(false);
+                historyRef.current.setOpen(false);
                 searchmenuRef.current.setOpen(!searchmenuRef.current.isOpen);
                 setActiveButton(
                   !searchmenuRef.current.isOpen ? "searchmenu" : ""
@@ -97,6 +113,7 @@ const FloatingButtons = forwardRef((props, ref) => {
               }}
               onClick={() => {
                 searchmenuRef.current.setOpen(false);
+                historyRef.current.setOpen(false);
                 locationDropdownRef.current.setOpen(
                   !locationDropdownRef.current.isOpen
                 );
@@ -115,9 +132,17 @@ const FloatingButtons = forwardRef((props, ref) => {
             <button
               className="floatingButton"
               onClick={() =>
-                createNewTable(props.currentLocation).then(() =>
-                  props.setReloadTables(true)
-                )
+                createNewTable(props.currentLocation)
+                  .then((tableId) => {
+                    props.addToHistory({
+                      description: `Neuer Tisch erstellt (id: ${tableId})`,
+                      undo: () =>
+                        deleteTable(tableId).then(() =>
+                          props.setReloadTables(true)
+                        ),
+                    });
+                  })
+                  .then(() => props.setReloadTables(true))
               }
             >
               <IoMdAdd />
@@ -152,6 +177,19 @@ const FloatingButtons = forwardRef((props, ref) => {
               </Link>
             </button>
           </div>
+          <div id="historyButtonContainer" data-tip="Verlauf">
+            <button
+              className="floatingButton"
+              onClick={() => {
+                locationDropdownRef.current.setOpen(false);
+                searchmenuRef.current.setOpen(false);
+                historyRef.current.setOpen(!historyRef.current.isOpen);
+                setActiveButton(!historyRef.current.isOpen ? "history" : "");
+              }}
+            >
+              <AiOutlineHistory />
+            </button>
+          </div>
         </div>
         <button
           id="toggleButton"
@@ -183,6 +221,12 @@ const FloatingButtons = forwardRef((props, ref) => {
           highlightRoom={(name) => props.setHighlightedRoom(name)}
           highlightTable={(id) => props.setHighlightedTable(id)}
           changeLocation={(id) => props.changeLocation(id)}
+        />
+        <History
+          ref={historyRef}
+          history={props.history}
+          undo={(am) => props.undo(am)}
+          reloadTables={() => props.setReloadTables(true)}
         />
       </div>
     </>
