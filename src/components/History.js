@@ -1,6 +1,5 @@
-import { forwardRef, useEffect, useImperativeHandle, useState } from "react";
+import { forwardRef, useImperativeHandle, useState } from "react";
 import "../styles/history.scss";
-import { BiUndo } from "react-icons/bi";
 
 const History = forwardRef((props, ref) => {
   const [isOpen, setIsOpen] = useState(false);
