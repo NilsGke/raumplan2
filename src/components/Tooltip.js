@@ -112,11 +112,19 @@ const Tooltip = forwardRef((props, ref) => {
               autoComplete="off"
               disabled={!isPopup}
               onBlur={(e) => {
-                changeTableNumber(table?.id, e.target.value, table.location);
+                changeTableNumber(
+                  table?.id,
+                  e.target.value,
+                  table.location
+                ).then(() => props.setReloadTables());
                 props.addToHistory({
-                  description: `Tisch: "${defaultValue}" zu "${e.target.value}" umbenannt`,
+                  description: `Tisch: "${table.tableNumber}" zu "${e.target.value}" umbenannt`,
                   undo: () => {
-                    changeTableNumber(table.id, defaultValue, table.location);
+                    changeTableNumber(
+                      table.id,
+                      defaultValue,
+                      table.location
+                    ).then(() => props.setReloadTables());
                   },
                 });
                 e.preventDefault();
