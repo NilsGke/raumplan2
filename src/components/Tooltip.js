@@ -21,6 +21,7 @@ import { GrPowerReset } from "react-icons/gr";
 import {
   addUserToTable,
   changeTableNumber,
+  createTableWithValues,
   deleteTable,
   getTableById,
   removeUserFromTable,
@@ -278,6 +279,12 @@ const Tooltip = forwardRef((props, ref) => {
               className={props.currentlyMovingTable ? "hidden " : ""}
               onClick={() => {
                 if (!window.confirm("Tisch wirklich löschen?")) return;
+                props.addToHistory({
+                  description: `Tisch: "${table.tableNumber}" gelöscht`,
+                  undo: () => {
+                    createTableWithValues(table);
+                  },
+                });
                 deleteTable(table.id);
                 setIsPopup(false);
                 props.updateTables();
@@ -295,9 +302,9 @@ const Tooltip = forwardRef((props, ref) => {
           addUserToTable(tableId, userId, table.location, true)
             .then(() => {
               props.addToHistory({
-                description: `added ${
+                description: `"${
                   getUserData(userId).Person
-                } to Table: ${getTableById(tableId)}`,
+                }" zu "${getTableById(tableId)}" hinzugefügt`,
                 date: new Date(),
                 undo: async () =>
                   await removeUserFromTable(userId, tableId, table.location),
