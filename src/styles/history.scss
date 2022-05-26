@@ -19,9 +19,10 @@
   backdrop-filter: blur(7px);
 
   #historyPopup {
+    max-height: 500px;
+    overflow-y: scroll;
     background: color.adjust(index.$bg1_light, $alpha: -0.3);
     border-radius: 20px;
-    overflow: hidden;
     z-index: 1000;
     padding: 20px;
     .item {
@@ -70,6 +71,41 @@
       display: flex;
       align-items: center;
       justify-content: center;
+    }
+    // scrollbar
+    & {
+      /* width */
+      &::-webkit-scrollbar {
+        transition: all index.$transDur ease-in-out;
+        width: 6px;
+        &:hover {
+          width: 10px;
+        }
+      }
+      /* Track */
+      &::-webkit-scrollbar-track {
+        background: #28292d;
+        border-radius: 10px;
+        &:hover {
+          width: 10px;
+        }
+      }
+      /* Handle */
+      &::-webkit-scrollbar-thumb {
+        transition: all index.$transDur ease-in-out;
+        background: #323336;
+        border-radius: 10px;
+        &:hover {
+          width: 10px;
+        }
+      }
+      /* Handle on hover */
+      &::-webkit-scrollbar-thumb:hover {
+        background: #3e3f42;
+        &:hover {
+          width: 10px;
+        }
+      }
     }
   }
   &.open {
