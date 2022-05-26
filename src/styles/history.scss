@@ -20,7 +20,7 @@
 
   #historyPopup {
     max-height: 500px;
-    overflow-y: scroll;
+    overflow: hidden scroll;
     background: color.adjust(index.$bg1_light, $alpha: -0.3);
     border-radius: 20px;
     z-index: 1000;
