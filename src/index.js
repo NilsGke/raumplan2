@@ -17,6 +17,7 @@ import FeedbackApp from "./pages/feedback";
 import {
   addOrRefreshTables,
   createNewTable,
+  deleteTable,
   getTableById,
   getTablesAtLocation,
 } from "./helpers/tables";
@@ -203,7 +204,16 @@ function App() {
             e.preventDefault();
             break;
           case "n":
-            createNewTable(locationId).then(() => setReloadTables(true));
+            createNewTable(locationId)
+              .then((tableId) => {
+                console.log("created table", tableId);
+                addToHistory({
+                  description: `Neuer Tisch erstellt (id: ${tableId})`,
+                  undo: () =>
+                    deleteTable(tableId).then(() => setReloadTables(true)),
+                });
+              })
+              .then(() => setReloadTables(true));
             break;
           case "r":
             setReloadTables(true);
@@ -475,6 +485,7 @@ function App() {
           ref={floatingButtonsRef}
           images={images}
           history={history}
+          addToHistory={(item) => addToHistory(item)}
           undo={(am) => undo(am)}
           setReloadTables={() => setReloadTables(true)}
           highlightRoom={(name) => setHighlightedRoom(name)}
