@@ -234,11 +234,13 @@ function App() {
           tooltipRef.current.setVisible(false);
         else if (
           floatingButtonsRef.current.searchmenuRef.current.isOpen ||
-          floatingButtonsRef.current.locationDropdownRef.current.isOpen
+          floatingButtonsRef.current.locationDropdownRef.current.isOpen ||
+          floatingButtonsRef.current.historyRef.current.isOpen
         ) {
           floatingButtonsRef.current.clearButtonBorders();
           floatingButtonsRef.current.searchmenuRef.current.setOpen(false);
           floatingButtonsRef.current.locationDropdownRef.current.setOpen(false);
+          floatingButtonsRef.current.historyRef.current.setOpen(false);
         } else if (floatingButtonsRef.current.toggledOpen) {
           floatingButtonsRef.current.setToggledOpen(false);
         }
