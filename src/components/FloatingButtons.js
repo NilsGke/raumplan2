@@ -179,6 +179,9 @@ const FloatingButtons = forwardRef((props, ref) => {
           </div>
           <div id="historyButtonContainer" data-tip="Verlauf">
             <button
+              style={{
+                border: activeButton === "history" ? "2px solid #00beff" : "",
+              }}
               className="floatingButton"
               onClick={() => {
                 locationDropdownRef.current.setOpen(false);
