@@ -1,6 +1,3 @@
-import { addToHistory } from "./history";
-import { getUserData } from "./users";
-
 let tableStorage = [];
 
 /**
@@ -37,6 +34,25 @@ export function getTableById(tableId) {
   return tableStorage.find((table) => table.id === tableId);
 }
 
+/** create new table with values
+ * @param {object} table table object
+ * @returns {Promise<void>}
+ */
+export function createTableWithValues(table) {
+  console.log(table);
+  return new Promise((resolve, reject) =>
+    fetch(process.env.REACT_APP_BACKEND + "addTableWithValues", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        table,
+      }),
+    })
+      .then(resolve)
+      .catch(reject)
+  );
+}
+
 /** create new table
  * @param {number} locationId location id
  * @returns {Promise<void>}
@@ -66,12 +82,7 @@ export function createNewTable(locationId) {
  * @param {number} tableId tables id
  * @param {string} newTableNumber table number (can also be letters, so its a string)
  */
-export function changeTableNumber(
-  tableId,
-  newTableNumber,
-  locationId,
-  shouldAddToHistory
-) {
+export function changeTableNumber(tableId, newTableNumber, locationId) {
   //   return promise
   return new Promise((resolve, reject) =>
     fetch(process.env.REACT_APP_BACKEND + "changeTableNumber", {
