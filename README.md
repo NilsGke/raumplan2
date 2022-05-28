@@ -1,4 +1,5 @@
 # Raumplan 2.0
+
 ![React](https://img.shields.io/badge/react-%2320232a.svg?style=for-the-badge&logo=react&logoColor=%2361DAFB)
 ![React Router](https://img.shields.io/badge/React_Router-CA4245?style=for-the-badge&logo=react-router&logoColor=white)
 ![NodeJS](https://img.shields.io/badge/node.js-6DA55F?style=for-the-badge&logo=node.js&logoColor=white)
@@ -16,7 +17,7 @@ Den Raumplan habe ich zusammen mit David Beyer in meinem zweiwöchigen Praktikum
 
 Der neue Tischplan ist in React geschrieben und hat im Vergleich zum alten Tischplan deutlich bessere Funktionen. Die Suchfunktion kann mehr dinge finden,
 
-## Local setup (pwsh)
+## Local setup
 
 ```
 git clone https://github.com/NilsGke/raumplan2.git
@@ -24,6 +25,7 @@ cd raumplan2
 npm install
 npm start
 ```
+
 **Der [Server](https://github.com/NilsGke/raumplan2server) wird zusätzlich benötigt!**
 
 ## Wie funktioniert das Tisch verschieben?
