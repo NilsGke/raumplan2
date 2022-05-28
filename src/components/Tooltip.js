@@ -23,6 +23,7 @@ import {
   changeTableNumber,
   createTableWithValues,
   deleteTable,
+  fetchTablesUsers,
   getTableById,
   removeUserFromTable,
 } from "../helpers/tables";
@@ -30,13 +31,20 @@ import { getUserData } from "../helpers/users";
 
 const Tooltip = forwardRef((props, ref) => {
   const [visible, setVisibility] = useState(false);
-  const [tableId, setTableId] = useState(-1);
-  const [table, setTable] = useState(getTableById(tableId));
+  const [tableId, setTableId] = useState();
+  const [table, setTable] = useState();
   const [isPopup, setIsPopup] = useState(false);
 
   const addUserFormRef = useRef();
 
-  useEffect(() => setTable(getTableById(tableId)), [tableId]);
+  useEffect(() => {
+    if (tableId !== undefined) setTable(getTableById(tableId));
+  }, [tableId]);
+
+  useEffect(() => {
+    if (table?.users === undefined && tableId !== undefined)
+      fetchTablesUsers(tableId).then((users) => setTable({ ...table, users }));
+  }, [table]);
 
   const defaultValue = table?.tableNumber;
   const isDraggable = isPopup
@@ -73,6 +81,48 @@ const Tooltip = forwardRef((props, ref) => {
     : {};
 
   const userIds = table?.user.split(";").filter((s) => s.length > 0) || [];
+
+  function users() {
+    if (table === undefined) return;
+    if (table.users === undefined)
+      return (
+        <div className="spinner-container">
+          <div className="loading-spinner"></div>
+        </div>
+      );
+    if (table.users.length === 0)
+      return (
+        <div className="noUsers">
+          <p>Keine Benutzer</p>
+        </div>
+      );
+    return table.users.map((userId) => (
+      <div key={userId} className="userContainer">
+        <User
+          id={userId}
+          deletable={true}
+          deleteUser={() =>
+            removeUserFromTable(userId, tableId, table.location, true)
+              .then(() => {
+                props.addToHistory({
+                  description: `${getUserData(userId).Person} von Tisch: ${
+                    table.tableNumber
+                  } gelöscht`,
+                  date: new Date(),
+                  undo: async () =>
+                    await addUserToTable(tableId, userId, table.location),
+                });
+              })
+              .then(() => setTable(getTableById(tableId)))
+          }
+          clickable={true}
+          clickHandler={({ Person }) => {
+            props.openSearch("user: " + Person);
+          }}
+        />
+      </div>
+    ));
+  }
 
   return (
     <>
@@ -201,43 +251,19 @@ const Tooltip = forwardRef((props, ref) => {
               "noDragHere" + (props.currentlyMovingTable ? " hidden" : "")
             }
             style={{
-              gridTemplateColumns: userIds.length > 1 ? "auto auto" : "auto",
-              width: userIds.length < 2 ? 250 : userIds.length > 4 ? 600 : 420,
-              justifyContent: userIds.length < 3 ? "center" : "flex-start",
+              gridTemplateColumns:
+                (table?.users?.length || 1) > 1 ? "auto auto" : "auto",
+              width:
+                (table?.users?.length || 1) < 2
+                  ? 250
+                  : (table?.users?.length || 1) > 4
+                  ? 600
+                  : 420,
+              justifyContent:
+                (table?.users?.length || 1) < 3 ? "center" : "flex-start",
             }}
           >
-            {userIds.map((userId, i) => (
-              <div key={userId} className="userContainer">
-                <User
-                  id={userId}
-                  deletable={true}
-                  deleteUser={() =>
-                    removeUserFromTable(userId, tableId, table.location, true)
-                      .then(() => {
-                        props.addToHistory({
-                          description: `${
-                            getUserData(userId).Person
-                          } von Tisch: ${
-                            getTableById(tableId).tableNumber
-                          } gelöscht`,
-                          date: new Date(),
-                          undo: async () =>
-                            await addUserToTable(
-                              tableId,
-                              userId,
-                              table.location
-                            ),
-                        });
-                      })
-                      .then(() => setTable(getTableById(tableId)))
-                  }
-                  clickable={true}
-                  clickHandler={({ Person }) => {
-                    props.openSearch("user: " + Person);
-                  }}
-                />
-              </div>
-            )) || <span className="noData">keine Personen</span>}
+            {users()}
           </div>
           <div
             id="controls"

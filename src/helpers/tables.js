@@ -78,6 +78,22 @@ export function createNewTable(locationId) {
   );
 }
 
+/** feches users at table
+ * @param {number} tableId table id
+ * @returns {Promise<[users]>}
+ */
+export function fetchTablesUsers(tableId) {
+  return new Promise((resolve, reject) =>
+    fetch(process.env.REACT_APP_BACKEND + "tablesUsers/" + tableId)
+      .then((response) => response.json())
+      .then((users) => {
+        tableStorage.find((table) => table.id === tableId).users = users;
+        resolve(users);
+      })
+      .catch(reject)
+  );
+}
+
 /** function that changes the tables number (/name)
  * @param {number} tableId tables id
  * @param {string} newTableNumber table number (can also be letters, so its a string)
