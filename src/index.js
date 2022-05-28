@@ -189,6 +189,102 @@ function App() {
     }
   }, [highlightTimers]);
 
+  /** function that sets up everything for the new location (deletes old tables and stuff)
+   * @param {number} id id of the new location
+   */
+  const changeLocation = useCallback(
+    (id) => {
+      if (locationId === id) return;
+      localStorage.setItem("raumplan", JSON.stringify({ location: id }));
+      setMovingTable(false);
+      tooltipRef.current.setVisible(false);
+      setLocationId(id);
+      setReloadTables(true);
+    },
+    [locationId]
+  );
+
+  /** saves the moved table to the db
+   * @returns {Promise}
+   */
+  async function saveMovedTable() {
+    return new Promise((resolve) => {
+      fetch(process.env.REACT_APP_BACKEND + "moveTable", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          id: movingTableId,
+          x: movingTableOldPos.x + movingTableNewPos.x,
+          y: movingTableOldPos.y + movingTableNewPos.y,
+          r: movingTableNewPos.r,
+        }),
+      })
+        .then(() => {
+          const tableId = movingTableId;
+          const oldPos = {
+            x: movingTableOldPos.x,
+            y: movingTableOldPos.y,
+            r: movingTableOldPos.r,
+          };
+          addToHistory({
+            description: `Tisch: ${
+              getTableById(movingTableId).tableNumber
+            } verschoben`,
+            undo: () => {
+              fetch(process.env.REACT_APP_BACKEND + "moveTable", {
+                method: "POST",
+                headers: {
+                  "content-type": "application/json",
+                },
+                body: JSON.stringify({
+                  id: tableId,
+                  x: oldPos.x,
+                  y: oldPos.y,
+                  r: oldPos.r,
+                }),
+              });
+            },
+          });
+          setMovingTableNewPos();
+        })
+        .then(resolve);
+    });
+  }
+  function resetMovingTable() {
+    setMovingTable(false);
+    setMovingTableId(-1);
+    setMovingTableNewPos({ x: 0, y: 0, r: 0 });
+    setMovingTableOldPos({ x: 0, y: 0, r: 0 });
+  }
+
+  function undo(length = 1) {
+    return new Promise(async (resolve, reject) => {
+      const historyTemp = history.slice();
+      const actions = historyTemp.splice(-length, length);
+      actions.forEach(async (action) => await action.undo());
+      setHistory(historyTemp);
+      setReloadTables(true);
+      resolve();
+    });
+  }
+
+  const addToHistory = useCallback(
+    (obj) => {
+      console.log("actually adding to history");
+      setHistory([
+        ...history,
+        {
+          ...obj,
+          date: new Date(),
+          id: history.map((h) => h.id).reduce((a, b) => a + b, 0) + 1,
+        },
+      ]);
+    },
+    [history]
+  );
+
   // shortcuts
   const handleKeyPress = useCallback(
     (e) => {
@@ -303,13 +399,7 @@ function App() {
         }
       }
     },
-    [
-      movingTable,
-      movingTable,
-      movingTableNewPos,
-      setMovingTableNewPos,
-      changeLocation,
-    ]
+    [movingTable, locationId, addToHistory, changeLocation, movingTableNewPos]
   );
 
   useEffect(() => {
@@ -321,96 +411,6 @@ function App() {
       document.removeEventListener("keydown", handleKeyPress);
     };
   }, [handleKeyPress]);
-
-  /** function that sets up everything for the new location (deletes old tables and stuff)
-   * @param {number} id id of the new location
-   */
-  function changeLocation(id) {
-    if (locationId === id) return;
-    localStorage.setItem("raumplan", JSON.stringify({ location: id }));
-    setMovingTable(false);
-    tooltipRef.current.setVisible(false);
-    setLocationId(id);
-    setReloadTables(true);
-  }
-
-  /** saves the moved table to the db
-   * @returns {Promise}
-   */
-  async function saveMovedTable() {
-    return new Promise((resolve) => {
-      fetch(process.env.REACT_APP_BACKEND + "moveTable", {
-        method: "POST",
-        headers: {
-          "content-type": "application/json",
-        },
-        body: JSON.stringify({
-          id: movingTableId,
-          x: movingTableOldPos.x + movingTableNewPos.x,
-          y: movingTableOldPos.y + movingTableNewPos.y,
-          r: movingTableNewPos.r,
-        }),
-      })
-        .then(() => {
-          const tableId = movingTableId;
-          const oldPos = {
-            x: movingTableOldPos.x,
-            y: movingTableOldPos.y,
-            r: movingTableOldPos.r,
-          };
-          addToHistory({
-            description: `Tisch: ${
-              getTableById(movingTableId).tableNumber
-            } verschoben`,
-            undo: () => {
-              fetch(process.env.REACT_APP_BACKEND + "moveTable", {
-                method: "POST",
-                headers: {
-                  "content-type": "application/json",
-                },
-                body: JSON.stringify({
-                  id: tableId,
-                  x: oldPos.x,
-                  y: oldPos.y,
-                  r: oldPos.r,
-                }),
-              });
-            },
-          });
-          setMovingTableNewPos();
-        })
-        .then(resolve);
-    });
-  }
-  function resetMovingTable() {
-    setMovingTable(false);
-    setMovingTableId(-1);
-    setMovingTableNewPos({ x: 0, y: 0, r: 0 });
-    setMovingTableOldPos({ x: 0, y: 0, r: 0 });
-  }
-
-  function undo(length = 1) {
-    return new Promise(async (resolve, reject) => {
-      const historyTemp = history.slice();
-      const actions = historyTemp.splice(-length, length);
-      actions.forEach(async (action) => await action.undo());
-      setHistory(historyTemp);
-      setReloadTables(true);
-      resolve();
-    });
-  }
-
-  const addToHistory = (obj) => {
-    console.log("actually adding to history");
-    setHistory([
-      ...history,
-      {
-        ...obj,
-        date: new Date(),
-        id: history.map((h) => h.id).reduce((a, b) => a + b, 0) + 1,
-      },
-    ]);
-  };
 
   return (
     <>

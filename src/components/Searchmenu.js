@@ -43,7 +43,7 @@ const Searchmenu = forwardRef((props, ref) => {
     if (isOpen) {
       inputRef.current.select();
     }
-  }, [isOpen]);
+  }, [isOpen, inputRef]);
 
   useEffect(() => {
     if (searchString === "") {

@@ -3,7 +3,7 @@ export let theme = "light";
 export default function setColorTheme() {
   //local storage is used to override OS theme settings
   if (localStorage.getItem("theme")) {
-    if (localStorage.getItem("theme") == "dark") {
+    if (localStorage.getItem("theme") === "dark") {
       theme = "dark";
     }
   } else if (!window.matchMedia) {
@@ -15,7 +15,7 @@ export default function setColorTheme() {
   }
 
   //dark theme preferred, set document with a `data-theme` attribute
-  if (theme == "dark") {
+  if (theme === "dark") {
     document.documentElement.setAttribute("data-theme", "dark");
   }
   console.log("theme", theme);

@@ -11,7 +11,7 @@ export default function Team(props) {
       fetchTeamData(props.name)
         .then((team) => setTeam(team))
         .then(() => setGotTeamData(true));
-  }, []);
+  }, [props.name, team]);
 
   if (!gotTeamData) return <div className="team placeholder">placeholder</div>;
 

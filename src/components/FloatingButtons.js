@@ -1,10 +1,4 @@
-import {
-  forwardRef,
-  useState,
-  useRef,
-  useImperativeHandle,
-  useEffect,
-} from "react";
+import { forwardRef, useState, useRef, useImperativeHandle } from "react";
 import { Link } from "react-router-dom";
 import { useMediaQuery } from "react-responsive";
 import { Squash as Hamburger } from "hamburger-react";
@@ -26,7 +20,6 @@ import { IoMdAdd } from "react-icons/io";
 
 import { MODIFIER_PREFIX } from "../";
 import { createNewTable, deleteTable } from "../helpers/tables";
-import { undo } from "../helpers/history";
 
 const FloatingButtons = forwardRef((props, ref) => {
   const isTabletOrMobile = useMediaQuery({ query: "(max-width: 1000px)" });

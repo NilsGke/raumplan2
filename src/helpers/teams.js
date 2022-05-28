@@ -6,7 +6,7 @@ export default teams;
  * @param {string} teamName team name
  * @returns team object or undefined
  */
-export const getTeamData = (teamName) => teams.find((t) => t.name == teamName);
+export const getTeamData = (teamName) => teams.find((t) => t.name === teamName);
 
 /** fetches team
  * @param {string} teamName team name
