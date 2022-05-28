@@ -39,5 +39,5 @@ export function fetchTeamData(teamName) {
  * @returns nothing
  */
 export const addTeamsToStorage = (newTeam) => {
-  if (!teams.find((team) => team.name == newTeam.name)) teams.push(newTeam);
+  if (!teams.find((team) => team.name === newTeam.name)) teams.push(newTeam);
 };
