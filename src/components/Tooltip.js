@@ -44,7 +44,7 @@ const Tooltip = forwardRef((props, ref) => {
   useEffect(() => {
     if (table?.users === undefined && tableId !== undefined)
       fetchTablesUsers(tableId).then((users) => setTable({ ...table, users }));
-  }, [table]);
+  }, [table, tableId]);
 
   const defaultValue = table?.tableNumber;
   const isDraggable = isPopup
@@ -79,8 +79,6 @@ const Tooltip = forwardRef((props, ref) => {
         overflow: "hidden",
       }
     : {};
-
-  const userIds = table?.user.split(";").filter((s) => s.length > 0) || [];
 
   function users() {
     if (table === undefined) return;
