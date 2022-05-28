@@ -129,6 +129,7 @@ const Tooltip = forwardRef((props, ref) => {
         handle=".drag"
         cancel=".noDragHere"
         defaultClassNameDragging="dragging"
+        bounds="parent"
       >
         <div
           // id="tooltip"
