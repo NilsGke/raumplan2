@@ -27,11 +27,13 @@ const Searchmenu = forwardRef((props, ref) => {
     rooms: [],
     locations: [],
   });
+  const [select, setSelect] = useState(false);
 
   useImperativeHandle(ref, () => ({
     isOpen,
     setOpen(open) {
       setIsOpen(open);
+      setSelect(true);
     },
     setSearchString(searchString) {
       setSearchString(searchString);
@@ -40,10 +42,11 @@ const Searchmenu = forwardRef((props, ref) => {
 
   const inputRef = createRef();
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && select) {
       inputRef.current.select();
+      setSelect(false);
     }
-  }, [isOpen, inputRef]);
+  }, [select, isOpen, inputRef]);
 
   useEffect(() => {
     if (searchString === "") {
