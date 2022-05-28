@@ -1,6 +1,6 @@
 import "../styles/calender.scss";
 import { AiOutlineClose } from "react-icons/ai";
-import { useState, forwardRef, createRef, useImperativeHandle } from "react";
+import { useState, forwardRef, useImperativeHandle } from "react";
 
 const Calender = forwardRef((props, ref) => {
   // state if calender is open or not
