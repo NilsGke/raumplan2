@@ -147,6 +147,18 @@
       // height: 100px;
     }
 
+    .spinner-container {
+      height: 103px;
+    }
+    .noUsers {
+      height: 103px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 20px;
+      color: index.$grey_light;
+    }
+
     // scrollbar
     & {
       /* width */
