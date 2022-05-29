@@ -21,7 +21,7 @@ const Settings = forwardRef((props, ref) => {
         <div className="setting">
           <label>
             <Toggle
-              defaultChecked={CONFIG.reload !== 0}
+              defaultChecked={CONFIG.reload}
               icons={false}
               onChange={() => {
                 CONFIG.reload = !CONFIG.reload;
