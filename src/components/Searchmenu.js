@@ -1,4 +1,10 @@
-import { useEffect, useState } from "react";
+import {
+  forwardRef,
+  useEffect,
+  useState,
+  useImperativeHandle,
+  createRef,
+} from "react";
 import User from "./User";
 // icons
 import { IconContext } from "react-icons";
@@ -10,7 +16,8 @@ import { addUsersToStorage } from "../helpers/users";
 // css
 import "../styles/searchMenu.scss";
 
-export default function Searchmenu(props) {
+const Searchmenu = forwardRef((props, ref) => {
+  const [isOpen, setIsOpen] = useState(false);
   const [searchString, setSearchString] = useState("");
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState({
@@ -20,6 +27,26 @@ export default function Searchmenu(props) {
     rooms: [],
     locations: [],
   });
+  const [select, setSelect] = useState(false);
+
+  useImperativeHandle(ref, () => ({
+    isOpen,
+    setOpen(open) {
+      setIsOpen(open);
+      setSelect(true);
+    },
+    setSearchString(searchString) {
+      setSearchString(searchString);
+    },
+  }));
+
+  const inputRef = createRef();
+  useEffect(() => {
+    if (isOpen && select) {
+      inputRef.current.select();
+      setSelect(false);
+    }
+  }, [select, isOpen, inputRef]);
 
   useEffect(() => {
     if (searchString === "") {
@@ -83,21 +110,15 @@ export default function Searchmenu(props) {
     if (results.users.length > 0) addUsersToStorage(results.users);
   }, [results, props]);
 
-  useEffect(() => {
-    if (props.overwrite !== false) {
-      setSearchString(props.overwrite);
-      props.clearOverwrite();
-    }
-  }, [props]);
-
   return (
-    <div id="searchInnerContainer" className={props.open ? "open" : ""}>
+    <div id="searchInnerContainer" className={isOpen ? "open" : ""}>
       <div className="wrapper">
         <div className="searchContainer">
           <input
             type="text"
             placeholder="Suchen..."
             value={searchString}
+            ref={inputRef}
             onChange={(e) => {
               setSearchString(e.target.value);
             }}
@@ -249,4 +270,7 @@ export default function Searchmenu(props) {
       </div>
     </div>
   );
-}
+});
+
+Searchmenu.displayName = "Searchmenu";
+export default Searchmenu;

@@ -1,10 +1,16 @@
-$bg: #333333;
-$bg_light: #3f3f3f;
-$bg_lighter: #3f3f3f;
-$grey: #6b6b6b;
-$bg_dark: #222222;
-$bg_darker: #222222;
+$bg1_light: #ffffff;
+$bg2_light: #e2e2e2;
+$bg3_light: #cecece;
+$grey_light: #6b6b6b;
+$text_light: #000000;
 
+$bg1_dark: #262626;
+$bg2_dark: #323336;
+$bg3_dark: #3b3d40;
+$grey_dark: #6b6b6b;
+$text_dark: #ffffff;
+
+$lightShadow: #bdbdbd;
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Oxygen", "Ubuntu",
@@ -27,11 +33,8 @@ body,
   width: 100%;
 }
 
-#app.dark {
-  background: $bg;
-  #map {
-    filter: invert(1) contrast(0.6) hue-rotate(197deg);
-  }
+html {
+  background-color: $bg1_light;
 }
 
 #app {
@@ -94,11 +97,11 @@ body,
   align-items: center;
   justify-content: center;
   .errorMessage {
-    background-color: $bg;
-    color: white;
+    background-color: $bg1_light;
+    color: $text_light;
     padding: 30px;
     border-radius: 20px;
-    box-shadow: -10px 10px 20px 0px $grey;
+    box-shadow: -10px 10px 20px 0px $grey_light;
     // width: min-content;
     * {
     }
@@ -108,12 +111,24 @@ body,
     }
     code {
       padding: 10px;
-      background-color: $bg_light;
+      background-color: $bg2_light;
       border-radius: 5px;
       box-shadow: inset;
     }
     h4 {
-      color: $grey;
+      color: $grey_light;
+    }
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+  }
+  html {
+    background: $bg1_dark;
+    #map {
+      filter: invert(1) contrast(0.7) hue-rotate(197deg);
     }
   }
 }

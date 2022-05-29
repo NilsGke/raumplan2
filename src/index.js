@@ -15,12 +15,19 @@ import FloatingButtons from "./components/FloatingButtons";
 import FeedbackApp from "./pages/feedback";
 import FeedbackPre from "./pages/feedbackPre";
 // helpers
+import {
+  addOrRefreshTables,
+  createNewTable,
+  deleteTable,
+  getTableById,
+  getTablesAtLocation,
+} from "./helpers/tables";
+import setColorTheme from "./helpers/theme";
 const fetchSync = require("sync-fetch");
 
 export const CONFIG = {
   reload: 0, // refresh time in seconds
   minSearchLengh: 0,
-  darkmode: false,
 };
 
 function importImages(r) {
@@ -30,6 +37,8 @@ function importImages(r) {
   });
   return images;
 }
+
+setColorTheme();
 
 /**variable to hold locations*/
 let locations = [];
@@ -56,23 +65,9 @@ function App() {
   const [tables, setTables] = useState(null);
   const [reloadTables, setReloadTables] = useState(true);
 
-  // search function
-  const [searchOpen, setSearchOpen] = useState(false);
-  const [searchOverwrite, setSearchOverwrite] = useState(false);
-  // loaction menu
-  const [locationDropDownOpen, setLocationDropDownOpen] = useState(false);
-
   // teams and rooms on the map
   const [teamlocations, setTeamlocations] = useState(null);
   const [rooms, setRooms] = useState(null);
-
-  // calender popup
-  const [calender, setCalender] = useState({ visible: false, data: null });
-
-  // tooltip
-  const [tooltipTableId, setTooltipTableId] = useState(-1);
-  const [tooltipVisible, setTooltipVisible] = useState(false);
-  const [popupOpen, setPopupOpen] = useState(false);
 
   // move a table
   const [movingTable, setMovingTable] = useState(false);
@@ -96,13 +91,19 @@ function App() {
   const [highlightedTable, setHighlightedTable] = useState(null);
   const [highlightTimers, setHighlightTimers] = useState(0);
 
+  // history
+  const [history, setHistory] = useState([]);
+
   /**holds images of the building*/
   const images = importImages(
     require.context("./img", false, /\.(png|jpe?g|svg)$/)
   );
 
   const tooltipRef = useRef();
+  const calenderRef = useRef();
+  const floatingButtonsRef = useRef();
 
+  // reload interval
   useEffect(() => {
     if (CONFIG.reload > 0 && interval === null)
       interval = setInterval(() => setReloadTables(true), CONFIG.reload * 1000);
@@ -162,10 +163,9 @@ function App() {
   useEffect(() => {
     if (reloadTables) {
       if (locationData != null)
-        fetch(process.env.REACT_APP_BACKEND + "tables/" + locationId)
-          .then((res) => res.json())
-          .then((data) => setTables(data))
-          .catch((err) => console.error(err));
+        addOrRefreshTables(locationId).then(() =>
+          setTables(getTablesAtLocation(locationId))
+        );
       setTimeout(() => {
         setReloadTables(false);
       }, 400);
@@ -190,6 +190,102 @@ function App() {
     }
   }, [highlightTimers]);
 
+  /** function that sets up everything for the new location (deletes old tables and stuff)
+   * @param {number} id id of the new location
+   */
+  const changeLocation = useCallback(
+    (id) => {
+      if (locationId === id) return;
+      localStorage.setItem("raumplan", JSON.stringify({ location: id }));
+      setMovingTable(false);
+      tooltipRef.current.setVisible(false);
+      setLocationId(id);
+      setReloadTables(true);
+    },
+    [locationId]
+  );
+
+  /** saves the moved table to the db
+   * @returns {Promise}
+   */
+  async function saveMovedTable() {
+    return new Promise((resolve) => {
+      fetch(process.env.REACT_APP_BACKEND + "moveTable", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          id: movingTableId,
+          x: movingTableOldPos.x + movingTableNewPos.x,
+          y: movingTableOldPos.y + movingTableNewPos.y,
+          r: movingTableNewPos.r,
+        }),
+      })
+        .then(() => {
+          const tableId = movingTableId;
+          const oldPos = {
+            x: movingTableOldPos.x,
+            y: movingTableOldPos.y,
+            r: movingTableOldPos.r,
+          };
+          addToHistory({
+            description: `Tisch: ${
+              getTableById(movingTableId).tableNumber
+            } verschoben`,
+            undo: () => {
+              fetch(process.env.REACT_APP_BACKEND + "moveTable", {
+                method: "POST",
+                headers: {
+                  "content-type": "application/json",
+                },
+                body: JSON.stringify({
+                  id: tableId,
+                  x: oldPos.x,
+                  y: oldPos.y,
+                  r: oldPos.r,
+                }),
+              });
+            },
+          });
+          setMovingTableNewPos();
+        })
+        .then(resolve);
+    });
+  }
+  function resetMovingTable() {
+    setMovingTable(false);
+    setMovingTableId(-1);
+    setMovingTableNewPos({ x: 0, y: 0, r: 0 });
+    setMovingTableOldPos({ x: 0, y: 0, r: 0 });
+  }
+
+  function undo(length = 1) {
+    return new Promise(async (resolve, reject) => {
+      const historyTemp = history.slice();
+      const actions = historyTemp.splice(-length, length);
+      actions.forEach(async (action) => await action.undo());
+      setHistory(historyTemp);
+      setReloadTables(true);
+      resolve();
+    });
+  }
+
+  const addToHistory = useCallback(
+    (obj) => {
+      console.log("actually adding to history");
+      setHistory([
+        ...history,
+        {
+          ...obj,
+          date: new Date(),
+          id: history.map((h) => h.id).reduce((a, b) => a + b, 0) + 1,
+        },
+      ]);
+    },
+    [history]
+  );
+
   // shortcuts
   const handleKeyPress = useCallback(
     (e) => {
@@ -197,17 +293,24 @@ function App() {
         // key combination
         switch (e.key) {
           case "f":
-            setSearchOpen(true);
-            setLocationDropDownOpen(false);
+            floatingButtonsRef.current.openSearchmenu();
             e.preventDefault();
             break;
           case "l":
-            setLocationDropDownOpen(true);
-            setSearchOpen(false);
+            floatingButtonsRef.current.openLocationDropdown();
             e.preventDefault();
             break;
           case "n":
-            addTable();
+            createNewTable(locationId)
+              .then((tableId) => {
+                console.log("created table", tableId);
+                addToHistory({
+                  description: `Neuer Tisch erstellt (id: ${tableId})`,
+                  undo: () =>
+                    deleteTable(tableId).then(() => setReloadTables(true)),
+                });
+              })
+              .then(() => setReloadTables(true));
             break;
           case "r":
             setReloadTables(true);
@@ -218,19 +321,25 @@ function App() {
         }
       } else if (e.key === "Escape") {
         // escape key
-        if (calender.visible) {
-          setCalender({ ...calender, visible: false });
-        } else if (tooltipRef.current.addUserFormOpen) {
-          tooltipRef.current.closeAddUserForm();
-        } else if (movingTable) {
-          resetMovingTable();
-        } else if (popupOpen) {
-          setPopupOpen(false);
-        } else if (tooltipVisible) {
-          setTooltipVisible(false);
-        } else if (locationDropDownOpen || searchOpen) {
-          setLocationDropDownOpen(false);
-          setSearchOpen(false);
+        if (calenderRef.current.isOpen) calenderRef.current.closeCalender();
+        else if (tooltipRef.current.addUserFormRef.current.open)
+          tooltipRef.current.addUserFormRef.current.setOpen(false);
+        else if (movingTable) resetMovingTable();
+        else if (tooltipRef.current.isPopup)
+          tooltipRef.current.setIsPopup(false);
+        else if (tooltipRef.current.visible)
+          tooltipRef.current.setVisible(false);
+        else if (
+          floatingButtonsRef.current.searchmenuRef.current.isOpen ||
+          floatingButtonsRef.current.locationDropdownRef.current.isOpen ||
+          floatingButtonsRef.current.historyRef.current.isOpen
+        ) {
+          floatingButtonsRef.current.clearButtonBorders();
+          floatingButtonsRef.current.searchmenuRef.current.setOpen(false);
+          floatingButtonsRef.current.locationDropdownRef.current.setOpen(false);
+          floatingButtonsRef.current.historyRef.current.setOpen(false);
+        } else if (floatingButtonsRef.current.toggledOpen) {
+          floatingButtonsRef.current.setToggledOpen(false);
         }
       } else if (e.keyCode >= 37 && e.keyCode <= 40) {
         //arrow keys
@@ -271,7 +380,9 @@ function App() {
             default:
               break;
           }
-        } else if (locationDropDownOpen) {
+        } else if (
+          floatingButtonsRef.current.locationDropdownRef.current.isOpen
+        ) {
           switch (e.keyCode) {
             case 38:
               // up
@@ -289,18 +400,7 @@ function App() {
         }
       }
     },
-    // eslint-disable-next-line
-    [
-      locationDropDownOpen,
-      searchOpen,
-      movingTable,
-      popupOpen,
-      tooltipVisible,
-      movingTable,
-      movingTableNewPos,
-      setMovingTableNewPos,
-      changeLocation,
-    ] // addTable should be here instead of the eslint disable, because react expects it to parse every funciton as an dependency
+    [movingTable, locationId, addToHistory, changeLocation, movingTableNewPos]
   );
 
   useEffect(() => {
@@ -313,138 +413,6 @@ function App() {
     };
   }, [handleKeyPress]);
 
-  /** sends a post request to set a new table*/
-  function addTable() {
-    fetch(process.env.REACT_APP_BACKEND + "addTable", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        tableNumber: "",
-        position: {
-          x: Math.floor(Math.random() * 200) + 300,
-          y: Math.floor(Math.random() * 100),
-          r: 0,
-        },
-        user: [],
-        location: locationId,
-      }),
-    }).then(() => setReloadTables(true));
-  }
-
-  /** sends a post request to delete a table from the db
-   * @param {number} id table id
-   */
-  function removeTable(id) {
-    fetch(process.env.REACT_APP_BACKEND + "removeTable", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        id: id,
-      }),
-    }).then(() => setReloadTables(true));
-  }
-
-  /** sends request to backend to add a user to a table
-   * @param {number} tableId tables id
-   * @param {number} userId users id
-   */
-  async function addUserToTable(tableId, userId) {
-    fetch(process.env.REACT_APP_BACKEND + "addUserToTable", {
-      method: "POST",
-      headers: {
-        "content-type": "application/json",
-      },
-      body: JSON.stringify({
-        userId: userId,
-        tableId: tableId,
-      }),
-    }).then(() => setReloadTables(false));
-  }
-
-  /** function that removes a user from a table in the db
-   * @param {number} userId users id
-   * @param {number} tableId tables id
-   */
-  async function removeUserFromTable(userId, tableId) {
-    fetch(process.env.REACT_APP_BACKEND + "removeUserFromTable", {
-      method: "POST",
-      headers: {
-        "content-type": "application/json",
-      },
-      body: JSON.stringify({
-        userId,
-        tableId,
-      }),
-    }).then(() => setReloadTables(true));
-  }
-
-  /** function that changes the tables number (/name)
-   * @param {number} tableId tables id
-   * @param {string} newTableNumber table number (can also be letters, so its a string)
-   */
-  function changeTableNumber(tableId, newTableNumber) {
-    fetch(process.env.REACT_APP_BACKEND + "changeTableNumber", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        id: tableId,
-        tableNumber: newTableNumber,
-      }),
-    }).then(() => setReloadTables(true));
-  }
-
-  /** function that opens the serach and puts something in the serach bar
-   * @param {string} searchString string to put into the serach bar of the serach thingy
-   */
-  function openSearch(searchString) {
-    setSearchOpen(true);
-
-    setLocationDropDownOpen(false);
-    setSearchOverwrite(searchString);
-  }
-
-  /** function that sets up everything for the new location (deletes old tables and stuff)
-   * @param {number} id id of the new location
-   */
-  function changeLocation(id) {
-    if (locationId === id) return;
-    localStorage.setItem("raumplan", JSON.stringify({ location: id }));
-    setMovingTable(false);
-    setPopupOpen(false);
-    setLocationId(id);
-    setReloadTables(true);
-  }
-
-  /** saves the moved table to the db
-   * @returns {Promise}
-   */
-  async function saveMovedTable() {
-    return new Promise((resolve) => {
-      fetch(process.env.REACT_APP_BACKEND + "moveTable", {
-        method: "POST",
-        headers: {
-          "content-type": "application/json",
-        },
-        body: JSON.stringify({
-          id: movingTableId,
-          x: movingTableOldPos.x + movingTableNewPos.x,
-          y: movingTableOldPos.y + movingTableNewPos.y,
-          r: movingTableNewPos.r,
-        }),
-      })
-        .then(() => {
-          setMovingTableNewPos();
-        })
-        .then(resolve);
-    });
-  }
-  function resetMovingTable() {
-    setMovingTable(false);
-    setMovingTableId(-1);
-    setMovingTableNewPos({ x: 0, y: 0, r: 0 });
-    setMovingTableOldPos({ x: 0, y: 0, r: 0 });
-  }
-
   return (
     <>
       <ReactTooltip
@@ -452,12 +420,17 @@ function App() {
         place={hoverTooltopPosition}
         offset={{ [hoverTooltopPosition]: 5 }}
       />
-      <div id="app" className={CONFIG.darkmode ? "dark" : "light"}>
+      <div id="app">
         <img src={images[locationData?.img] || ""} alt={"map"} id="map" />
         {teamlocations?.map((location, i) => (
           <Teamlocation
             key={i}
-            openSearch={(s) => openSearch(s)}
+            openSearch={(s) => {
+              floatingButtonsRef.current.openSearchmenu();
+              floatingButtonsRef.current.searchmenuRef.current.setSearchString(
+                s
+              );
+            }}
             data={location}
           />
         ))}
@@ -467,7 +440,10 @@ function App() {
             key={i}
             data={room}
             highlighted={room.name === highlightedRoom}
-            openCalender={(data) => setCalender({ visible: true, data: data })}
+            openCalender={(data) => {
+              calenderRef.current.openCalender(data);
+              calenderRef.current.setData(data);
+            }}
           />
         ))}
 
@@ -494,15 +470,13 @@ function App() {
               <div className="tableDraggable">
                 <Table
                   highlighted={highlightedTable === table.id}
-                  active={
-                    table.id === tooltipTableId && (tooltipVisible || popupOpen)
-                  }
                   locationData={locationData}
                   data={table}
-                  tooltip={(visible) => setTooltipVisible(visible)}
-                  changeTooltipTable={(id) => setTooltipTableId(id)}
-                  popup={() => setPopupOpen(true)}
-                  popupOpen={popupOpen}
+                  setTooltipVisible={(bool) =>
+                    tooltipRef.current.setVisible(bool)
+                  }
+                  changeTooltipTable={(id) => tooltipRef.current.setTable(id)}
+                  openPopup={() => tooltipRef.current.setIsPopup(true)}
                   moving={movingTable && table.id === movingTableId}
                   newPosition={movingTableNewPos}
                 />
@@ -511,43 +485,26 @@ function App() {
           );
         })}
         <FloatingButtons
+          ref={floatingButtonsRef}
           images={images}
-          searchOpen={searchOpen}
-          setSearchOpen={(val) => {
-            setSearchOpen(val);
-          }}
-          addTable={() => addTable()}
+          history={history}
+          addToHistory={(item) => addToHistory(item)}
+          undo={(am) => undo(am)}
           setReloadTables={() => setReloadTables(true)}
-          searchOverwrite={searchOverwrite}
           highlightRoom={(name) => setHighlightedRoom(name)}
           highlightTable={(id) => setHighlightedTable(id)}
           currentLocation={locationId}
           changeLocation={(id) => changeLocation(id)}
-          clearOverwrite={() => setSearchOverwrite(false)}
           reloadTables={reloadTables}
-          locationDropDownOpen={locationDropDownOpen}
-          setlocationDropDownOpen={(val) => setLocationDropDownOpen(val)}
           setHighlightedTable={(table) => setHighlightedTable(table)}
           setHighlightedRoom={(room) => setHighlightedRoom(room)}
           setHoverTooltopPosition={(pos) => setHoverTooltopPosition(pos)}
         />
         <Tooltip
-          table={tables?.find((t) => t.id === tooltipTableId)}
-          visible={tooltipVisible}
-          popup={popupOpen}
-          openPopup={() => setPopupOpen(true)}
-          closePopup={() => setPopupOpen(false)}
-          changeTableNumber={(id, num) => changeTableNumber(id, num)}
-          removeTable={(id) => {
-            if (!window.confirm("Tisch wirklich löschen?")) return;
-            removeTable(id);
-            setPopupOpen(false);
-          }}
           // edit users
-          deleteUser={(userId, tableId) => removeUserFromTable(userId, tableId)}
-          addUserToTable={(tableId, userId) => addUserToTable(tableId, userId)}
+          setReloadTables={() => setReloadTables(true)}
           updateTables={() => setReloadTables(true)}
-          // move tables
+          // move table
           currentlyMovingTable={movingTable}
           moveTable={(tableId, oldPos) => {
             setMovingTableNewPos({ x: 0, y: 0, r: oldPos.r });
@@ -571,16 +528,18 @@ function App() {
             setReloadTables(true);
           }}
           resetMovingTable={() => resetMovingTable()}
-          ref={tooltipRef}
           setHoverTooltopPosition={(pos) => setHoverTooltopPosition(pos)}
-          openSearch={(name) => openSearch(name)}
+          openSearch={(searchString) => {
+            floatingButtonsRef.current.searchmenuRef.current.setOpen(true);
+            floatingButtonsRef.current.searchmenuRef.current.setSearchString(
+              searchString
+            );
+          }}
           newRotation={movingTableNewPos.r}
+          addToHistory={(obj) => addToHistory(obj)}
+          ref={tooltipRef}
         />
-        <Calender
-          data={calender.data}
-          visible={calender.visible}
-          close={() => setCalender({ ...calender, visible: false })}
-        />
+        <Calender ref={calenderRef} />
       </div>
     </>
   );

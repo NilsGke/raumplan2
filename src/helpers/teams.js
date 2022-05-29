@@ -6,7 +6,7 @@ export default teams;
  * @param {string} teamName team name
  * @returns team object or undefined
  */
-export const getTeamData = (teamName) => teams.find((t) => t.name == teamName);
+export const getTeamData = (teamName) => teams.find((t) => t.name === teamName);
 
 /** fetches team
  * @param {string} teamName team name
@@ -32,3 +32,12 @@ export function fetchTeamData(teamName) {
       })
   );
 }
+
+/**
+ * function to add teams to the storage (only adds if team not in storage yet)
+ * @param {[teamsobj]} newTeam array of teams to add to the teams array
+ * @returns nothing
+ */
+export const addTeamsToStorage = (newTeam) => {
+  if (!teams.find((team) => team.name === newTeam.name)) teams.push(newTeam);
+};

@@ -1,4 +1,5 @@
 # Raumplan 2.0
+
 ![React](https://img.shields.io/badge/react-%2320232a.svg?style=for-the-badge&logo=react&logoColor=%2361DAFB)
 ![React Router](https://img.shields.io/badge/React_Router-CA4245?style=for-the-badge&logo=react-router&logoColor=white)
 ![NodeJS](https://img.shields.io/badge/node.js-6DA55F?style=for-the-badge&logo=node.js&logoColor=white)
@@ -6,7 +7,7 @@
 
 ![SASS](https://img.shields.io/badge/SASS-hotpink.svg?style=for-the-badge&logo=SASS&logoColor=white)
 
-![MySQL](https://img.shields.io/badge/mysql-%2300f.svg?style=for-the-badge&logo=mysql&logoColor=white)
+[![Node.js CI](https://github.com/NilsGke/raumplan2/actions/workflows/node.js.yml/badge.svg)](https://github.com/NilsGke/raumplan2/actions/workflows/node.js.yml)
 
 ## Was ist der Raumplan
 
@@ -16,7 +17,7 @@ Den Raumplan habe ich zusammen mit David Beyer in meinem zweiwöchigen Praktikum
 
 Der neue Tischplan ist in React geschrieben und hat im Vergleich zum alten Tischplan deutlich bessere Funktionen. Die Suchfunktion kann mehr dinge finden,
 
-## Local setup (pwsh)
+## Local setup
 
 ```
 git clone https://github.com/NilsGke/raumplan2.git
@@ -24,6 +25,7 @@ cd raumplan2
 npm install
 npm start
 ```
+
 **Der [Server](https://github.com/NilsGke/raumplan2server) wird zusätzlich benötigt!**
 
 ## Wie funktioniert das Tisch verschieben?
@@ -32,7 +34,7 @@ Jeder Tisch ist child von einem einem `react-draggable`, welches ursprünglich l
 
 ## Besonderheit: resource friendly
 
-Ich habe den Tischplan so geschrieben, dass nur die Ressourcen geholt werden, die wirklich benötigt werden. So werden beim initial page load nur die Daten der Aktuellen Location (Tischgröße), die Räume, Teams, Tische und das Grundriss-Bild von der aktuellen Location geladen. Die Benutzer und Teams werden erst geladen, wenn man mit der Maus über einen Tisch hovered und gespeichert um später wieder verwendet werden zu können.
+Ich versuche den Raumplan so zu entwickeln, dass nur die Ressourcen geholt werden, die wirklich benötigt werden. So werden beim initial page load nur die Daten der Aktuellen Location (Tischgröße), die Räume, Teams, Tische und das Grundriss-Bild von der aktuellen Location geladen. Die Benutzer und Teams werden erst geladen, wenn man mit der Maus über einen Tisch hovered und gespeichert um später wieder verwendet werden zu können.
 
 ## Backend
 
