@@ -12,8 +12,9 @@ import Teamlocation from "./components/Teamlocation";
 import Room from "./components/Room";
 import "./styles/index.scss";
 import FloatingButtons from "./components/FloatingButtons";
-import FeedbackApp from "./pages/feedback";
+import FeedbackPre from "./pages/FeedbackPre";
 // helpers
+import setColorTheme from "./helpers/theme";
 import {
   addOrRefreshTables,
   createNewTable,
@@ -21,11 +22,10 @@ import {
   getTableById,
   getTablesAtLocation,
 } from "./helpers/tables";
-import setColorTheme from "./helpers/theme";
 const fetchSync = require("sync-fetch");
 
 export const CONFIG = {
-  reload: 0, // refresh time in seconds
+  reload: false,
   minSearchLengh: 0,
 };
 
@@ -41,8 +41,6 @@ setColorTheme();
 
 /**variable to hold locations*/
 let locations = [];
-
-let interval = null;
 
 export const MODIFIER_PREFIX =
   window.navigator.appVersion.indexOf("Mac") !== -1 ? "⌘" : "^";
@@ -104,9 +102,9 @@ function App() {
 
   // reload interval
   useEffect(() => {
-    if (CONFIG.reload > 0 && interval === null)
-      interval = setInterval(() => setReloadTables(true), CONFIG.reload * 1000);
-
+    const interval = setInterval(() => {
+      if (CONFIG.reload) setReloadTables(true);
+    }, 2000);
     return () => {
       clearInterval(interval);
     };
@@ -583,7 +581,7 @@ const Router = () => {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<App />} exact />
-        <Route path="/feedback" element={<FeedbackApp />} />
+        <Route path="/feedback" element={<FeedbackPre />} />
       </Routes>
     </BrowserRouter>
   );
