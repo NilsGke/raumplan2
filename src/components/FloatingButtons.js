@@ -160,16 +160,6 @@ const FloatingButtons = forwardRef((props, ref) => {
               <AiOutlineReload />
             </button>
           </div>
-          {/* <div id="feedbackButtonContainer" data-tip="Feedback">
-            <button
-              className="floatingButton"
-              onClick={(e) => props.setReloadTables(true)}
-            >
-              <Link to="/feedback">
-                <MdOutlineFeedback className="invert" />
-              </Link>
-            </button>
-          </div> */}
           <div id="historyButtonContainer" data-tip="Verlauf">
             <button
               style={{
