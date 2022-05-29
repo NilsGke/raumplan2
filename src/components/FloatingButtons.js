@@ -34,23 +34,25 @@ const FloatingButtons = forwardRef((props, ref) => {
 
   useImperativeHandle(ref, () => ({
     openSearchmenu() {
-      locationDropdownRef.current.setOpen(false);
-      historyRef.current.setOpen(false);
+      closeAll();
       searchmenuRef.current.setOpen(true);
     },
     openLocationDropdown() {
-      searchmenuRef.current.setOpen(false);
-      historyRef.current.setOpen(false);
+      closeAll();
       locationDropdownRef.current.setOpen(true);
     },
     openHistory() {
-      searchmenuRef.current.setOpen(false);
-      locationDropdownRef.current.setOpen(false);
+      closeAll();
       historyRef.current.setOpen(true);
+    },
+    openSettings() {
+      closeAll();
+      settingsRef.current.setOpen(true);
     },
     searchmenuRef,
     locationDropdownRef,
     historyRef,
+    settingsRef,
     clearButtonBorders() {
       setActiveButton("");
     },
@@ -58,7 +60,17 @@ const FloatingButtons = forwardRef((props, ref) => {
     setToggledOpen(bool) {
       setToggledOpen(bool);
     },
+    closeAll() {
+      closeAll();
+    },
   }));
+
+  const closeAll = () => {
+    searchmenuRef.current.setOpen(false);
+    locationDropdownRef.current.setOpen(false);
+    historyRef.current.setOpen(false);
+    settingsRef.current.setOpen(false);
+  };
 
   return (
     <>
@@ -81,9 +93,9 @@ const FloatingButtons = forwardRef((props, ref) => {
                   activeButton === "searchmenu" ? "2px solid #00beff" : "",
               }}
               onClick={() => {
-                locationDropdownRef.current.setOpen(false);
-                historyRef.current.setOpen(false);
-                searchmenuRef.current.setOpen(!searchmenuRef.current.isOpen);
+                const opened = searchmenuRef.current.isOpen;
+                closeAll();
+                searchmenuRef.current.setOpen(!opened);
                 setActiveButton(
                   !searchmenuRef.current.isOpen ? "searchmenu" : ""
                 );
@@ -105,11 +117,9 @@ const FloatingButtons = forwardRef((props, ref) => {
                     : "",
               }}
               onClick={() => {
-                searchmenuRef.current.setOpen(false);
-                historyRef.current.setOpen(false);
-                locationDropdownRef.current.setOpen(
-                  !locationDropdownRef.current.isOpen
-                );
+                const opened = locationDropdownRef.current.isOpen;
+                closeAll();
+                locationDropdownRef.current.setOpen(!opened);
                 setActiveButton(
                   !locationDropdownRef.current.isOpen ? "locationDropdown" : ""
                 );
@@ -167,9 +177,9 @@ const FloatingButtons = forwardRef((props, ref) => {
               }}
               className="floatingButton"
               onClick={() => {
-                locationDropdownRef.current.setOpen(false);
-                searchmenuRef.current.setOpen(false);
-                historyRef.current.setOpen(!historyRef.current.isOpen);
+                const opened = historyRef.current.isOpen;
+                closeAll();
+                historyRef.current.setOpen(!opened);
                 setActiveButton(!historyRef.current.isOpen ? "history" : "");
               }}
             >
@@ -178,10 +188,16 @@ const FloatingButtons = forwardRef((props, ref) => {
           </div>
           <div id="settingsButtonContainer" data-tip="Einstellungen">
             <button
+              style={{
+                border: activeButton === "settings" ? "2px solid #00beff" : "",
+              }}
               className="floatingButton"
-              onClick={() =>
-                settingsRef.current.setOpen(!settingsRef.current.isOpen)
-              }
+              onClick={() => {
+                const opened = settingsRef.current.isOpen;
+                closeAll();
+                settingsRef.current.setOpen(!opened);
+                setActiveButton(!settingsRef.current.isOpen ? "settings" : "");
+              }}
             >
               <IoMdSettings />
             </button>

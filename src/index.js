@@ -297,6 +297,10 @@ function App() {
             floatingButtonsRef.current.openLocationDropdown();
             e.preventDefault();
             break;
+          case ",":
+            floatingButtonsRef.current.openSettings();
+            e.preventDefault();
+            break;
           case "n":
             createNewTable(locationId)
               .then((tableId) => {
@@ -329,12 +333,11 @@ function App() {
         else if (
           floatingButtonsRef.current.searchmenuRef.current.isOpen ||
           floatingButtonsRef.current.locationDropdownRef.current.isOpen ||
-          floatingButtonsRef.current.historyRef.current.isOpen
+          floatingButtonsRef.current.historyRef.current.isOpen ||
+          floatingButtonsRef.current.settingsRef.current.isOpen
         ) {
           floatingButtonsRef.current.clearButtonBorders();
-          floatingButtonsRef.current.searchmenuRef.current.setOpen(false);
-          floatingButtonsRef.current.locationDropdownRef.current.setOpen(false);
-          floatingButtonsRef.current.historyRef.current.setOpen(false);
+          floatingButtonsRef.current.closeAll();
         } else if (floatingButtonsRef.current.toggledOpen) {
           floatingButtonsRef.current.setToggledOpen(false);
         }
@@ -527,7 +530,7 @@ function App() {
           resetMovingTable={() => resetMovingTable()}
           setHoverTooltopPosition={(pos) => setHoverTooltopPosition(pos)}
           openSearch={(searchString) => {
-            floatingButtonsRef.current.searchmenuRef.current.setOpen(true);
+            floatingButtonsRef.current.openSearchmenu();
             floatingButtonsRef.current.searchmenuRef.current.setSearchString(
               searchString
             );
