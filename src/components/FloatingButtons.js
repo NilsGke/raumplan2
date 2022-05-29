@@ -1,5 +1,4 @@
 import { forwardRef, useState, useRef, useImperativeHandle } from "react";
-import { Link } from "react-router-dom";
 import { useMediaQuery } from "react-responsive";
 import { Squash as Hamburger } from "hamburger-react";
 // components
@@ -15,11 +14,11 @@ import {
   AiOutlineSearch,
   AiOutlineHistory,
 } from "react-icons/ai";
-import { MdOutlineFeedback } from "react-icons/md";
-import { IoMdAdd } from "react-icons/io";
+import { IoMdAdd, IoMdSettings } from "react-icons/io";
 
 import { MODIFIER_PREFIX } from "../";
 import { createNewTable, deleteTable } from "../helpers/tables";
+import Settings from "./Settings";
 
 const FloatingButtons = forwardRef((props, ref) => {
   const isTabletOrMobile = useMediaQuery({ query: "(max-width: 1000px)" });
@@ -31,6 +30,7 @@ const FloatingButtons = forwardRef((props, ref) => {
   const locationDropdownRef = useRef();
   const searchmenuRef = useRef();
   const historyRef = useRef();
+  const settingsRef = useRef();
 
   useImperativeHandle(ref, () => ({
     openSearchmenu() {
@@ -160,16 +160,6 @@ const FloatingButtons = forwardRef((props, ref) => {
               <AiOutlineReload />
             </button>
           </div>
-          <div id="feedbackButtonContainer" data-tip="Feedback">
-            <button
-              className="floatingButton"
-              onClick={(e) => props.setReloadTables(true)}
-            >
-              <Link to="/feedback">
-                <MdOutlineFeedback className="invert" />
-              </Link>
-            </button>
-          </div>
           <div id="historyButtonContainer" data-tip="Verlauf">
             <button
               style={{
@@ -184,6 +174,16 @@ const FloatingButtons = forwardRef((props, ref) => {
               }}
             >
               <AiOutlineHistory />
+            </button>
+          </div>
+          <div id="settingsButtonContainer" data-tip="Einstellungen">
+            <button
+              className="floatingButton"
+              onClick={() =>
+                settingsRef.current.setOpen(!settingsRef.current.isOpen)
+              }
+            >
+              <IoMdSettings />
             </button>
           </div>
         </div>
@@ -224,6 +224,7 @@ const FloatingButtons = forwardRef((props, ref) => {
           undo={(am) => props.undo(am)}
           reloadTables={() => props.setReloadTables(true)}
         />
+        <Settings ref={settingsRef} />
       </div>
     </>
   );
