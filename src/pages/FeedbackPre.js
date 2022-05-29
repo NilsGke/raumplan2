@@ -24,13 +24,17 @@ export default function FeedbackPre() {
             <img src={github} alt="" />
           </div>
         </a>
-        <Link to={{ pathname: "/feedback" }}>
+        <a
+          href={process.env.REACT_APP_FEEDBACK_EMAIL}
+          target="_blank"
+          rel="noreferrer"
+        >
           <div id="Anderes">
             <h1>Email</h1>
             <h2>alles Andere</h2>
             <img src={otherFeedback} alt="" />
           </div>
-        </Link>
+        </a>
       </div>
       <div id="goBack">
         <Link to={{ pathname: "/" }}>
