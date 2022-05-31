@@ -11,7 +11,7 @@
 
 ## Was ist der Raumplan
 
-Den Raumplan habe ich zusammen mit David Beyer in meinem zweiwöchigen Praktikum bei Seibert Media entwickelt. Er ist dazu gedacht, dass Mitarbeiter bei Seibert Media einen Überblick über die Büroflächen und Tische bekommen. Man kann so einfach Personen finden oder schauen, wer an einem Tisch sitzt.
+Der Raumplan ist dazu gedacht, dass Mitarbeiter einen Überblick über die Büroflächen und Tische bekommen. Man kann so einfach Personen finden oder schauen, wer an einem Tisch sitzt.
 
 ## Was ist anders in der 2.0 version?
 
