@@ -39,7 +39,6 @@ export function getTableById(tableId) {
  * @returns {Promise<void>}
  */
 export function createTableWithValues(table) {
-  console.log(table);
   return new Promise((resolve, reject) =>
     fetch(process.env.REACT_APP_BACKEND + "addTableWithValues", {
       method: "POST",
@@ -88,6 +87,23 @@ export function fetchTablesUsers(tableId) {
       .then((response) => response.json())
       .then((users) => {
         tableStorage.find((table) => table.id === tableId).users = users;
+        resolve(users);
+      })
+      .catch(reject)
+  );
+}
+
+// fetch all table users
+export function fetchAllTablesUsers() {
+  return new Promise((resolve, reject) =>
+    fetch(process.env.REACT_APP_BACKEND + "tablesUsers")
+      .then((response) => response.json())
+      .then((users) => {
+        users.forEach((user) => {
+          tableStorage
+            .find((table) => table.id === user.tableId)
+            .users.push(user);
+        });
         resolve(users);
       })
       .catch(reject)
