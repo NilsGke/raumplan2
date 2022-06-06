@@ -31,6 +31,19 @@ const Settings = forwardRef((props, ref) => {
             <span>Auto reload Tables</span>
           </label>
         </div>
+        <div className="setting">
+          <label>
+            <Toggle
+              defaultChecked={CONFIG.prefetch}
+              icons={false}
+              onChange={() => {
+                CONFIG.prefetch = !CONFIG.prefetch;
+                localStorage.setItem("config", JSON.stringify(CONFIG));
+              }}
+            />
+            <span>Pre-fetch data</span>
+          </label>
+        </div>
         <div className="setting button">
           <Link to="/feedback">
             <button>Feedback</button>

@@ -40,6 +40,23 @@ export function fetchUsersTeams(userId) {
   );
 }
 
+/** fetch all users and add to user storage
+ * @returns {array} array of users
+ */
+export function fetchAllUsers() {
+  return new Promise((resolve, reject) =>
+    fetch(process.env.REACT_APP_BACKEND + "users")
+      .then((res) => res.json())
+      .then((userRes) => {
+        userRes.forEach((user) => {
+          user.teams.forEach((team) => addTeamsToStorage(team));
+          users.push(user);
+        });
+        resolve(userRes);
+      })
+  );
+}
+
 /** function to add users to the storage (only adds if user not in storage yet)
  * @param {[users]} newUsers array of users to add to the users array
  * @returns nothing
