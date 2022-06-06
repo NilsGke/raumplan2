@@ -19,15 +19,32 @@ import {
   addOrRefreshTables,
   createNewTable,
   deleteTable,
+  fetchAllTablesUsers,
   getTableById,
   getTablesAtLocation,
 } from "./helpers/tables";
+import { fetchAllUsers } from "./helpers/users";
 const fetchSync = require("sync-fetch");
 
-export const CONFIG = {
+const defaultConfig = {
   reload: false,
+  prefetch: false,
   minSearchLengh: 0,
 };
+
+// import config from local storage
+export const CONFIG =
+  JSON.parse(localStorage.getItem("config")) || defaultConfig;
+
+// if a value is not in config add it to local storage
+for (const key in defaultConfig) {
+  if (Object.hasOwnProperty.call(defaultConfig, key)) {
+    const value = defaultConfig[key];
+    if (CONFIG.hasOwnProperty(key) === false) CONFIG[key] = value;
+  }
+}
+
+localStorage.setItem("config", JSON.stringify(CONFIG));
 
 function importImages(r) {
   let images = {};
@@ -136,6 +153,14 @@ function App() {
           "#" +
           locationData?.id
       );
+  }, [locationData]);
+
+  // prefetching
+  useEffect(() => {
+    if (CONFIG.prefetch) {
+      fetchAllUsers();
+      fetchAllTablesUsers();
+    }
   }, [locationData]);
 
   // fetch rooms
